@@ -1,35 +1,30 @@
 import java.time.LocalDate;
 
 public class SeatReservation {
-    // Private instance variables
     private String flightDesignator;
     private LocalDate flightDate;
     private String firstName;
     private String lastName;
     
-    // Default constructor
     public SeatReservation() {
     }
     
-    // Constructor with parameters
     public SeatReservation(String flightDesignator, LocalDate flightDate, String firstName, String lastName) {
-        this.flightDesignator = flightDesignator;
+        setFlightDesignator(flightDesignator);
         this.flightDate = flightDate;
         this.firstName = firstName;
         this.lastName = lastName;
     }
     
-    // Getter and Setter methods
     public String getFlightDesignator() {
         return flightDesignator;
     }
     
     public void setFlightDesignator(String flightDesignator) {
-        if (flightDesignator == null){
-            throw new IllegalArgumentException("flight designator cannot be null");
+        if (flightDesignator == null || flightDesignator.length() < 4 || flightDesignator.length() > 6) {
+            throw new IllegalArgumentException();
         }
         this.flightDesignator = flightDesignator;
-
     }
     
     public LocalDate getFlightDate() {
@@ -56,15 +51,7 @@ public class SeatReservation {
         this.lastName = lastName;
     }
     
-    // toString method that returns a string representation of the SeatReservation object
     public String toString() {
-        return "SeatReservation{flightDesignator=" + 
-               (flightDesignator != null ? flightDesignator : "null") + 
-               ", flightDate=" + 
-               (flightDate != null ? flightDate.toString() : "null") + 
-               ", firstName=" + 
-               (firstName != null ? firstName : "null") + 
-               ", lastName=" + 
-               (lastName != null ? lastName : "null") + "}";
+        return "SeatReservation{flightDesignator=" + flightDesignator + ",flightDate=" + flightDate + ",firstName=" + firstName + ",lastName=" + lastName + "}";
     }
 }
