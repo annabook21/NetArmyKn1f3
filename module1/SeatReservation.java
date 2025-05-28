@@ -55,3 +55,4 @@ public class SeatReservation {
         return "SeatReservation{flightDesignator=" + flightDesignator + ",flightDate=" + flightDate + ",firstName=" + firstName + ",lastName=" + lastName + "}";
     }
 }
+
