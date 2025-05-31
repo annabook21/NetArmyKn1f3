@@ -1,6 +1,7 @@
 package edu.au.cpsc.module2;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -13,6 +14,9 @@ import javafx.stage.Stage;
 import java.time.LocalDate;
 
 public class SeatReservationApplication extends Application {
+
+    // Instance variable for SeatReservation
+    private SeatReservation seatReservation;
 
     // Controls for the SeatReservation fields
     private TextField flightDesignatorField;
@@ -29,6 +33,11 @@ public class SeatReservationApplication extends Application {
 
     @Override
     public void start(Stage stage) {
+        // Create and initialize SeatReservation instance with reasonable values
+        seatReservation = new SeatReservation("AA123", LocalDate.of(2025, 6, 15), "John", "Smith");
+        seatReservation.setNumberOfBags(2);
+        seatReservation.makeFlyingWithInfant();
+
         // Create the main layout
         BorderPane borderPane = new BorderPane();
 
@@ -51,6 +60,10 @@ public class SeatReservationApplication extends Application {
         // Create and show the scene
         Scene scene = new Scene(borderPane, 400, 350);
         stage.setTitle("Seat Reservation Editor");
+
+        // Update UI with initial values before showing
+        updateUI();
+
         stage.setScene(scene);
         stage.show();
     }
@@ -88,6 +101,16 @@ public class SeatReservationApplication extends Application {
         // Flying with Infant
         gridPane.add(new Label("Flying with Infant:"), 0, row);
         flyingWithInfantCheckBox = new CheckBox();
+
+        // Add event handler for CheckBox
+        flyingWithInfantCheckBox.setOnAction(e -> {
+            if (flyingWithInfantCheckBox.isSelected()) {
+                numberOfPassengersField.setText("2");
+            } else {
+                numberOfPassengersField.setText("1");
+            }
+        });
+
         gridPane.add(flyingWithInfantCheckBox, 1, row++);
 
         // Number of Passengers (read-only)
@@ -116,60 +139,49 @@ public class SeatReservationApplication extends Application {
     }
 
     private void handleCancel() {
-        // Clear all fields
-        flightDesignatorField.clear();
-        flightDatePicker.setValue(LocalDate.now());
-        firstNameField.clear();
-        lastNameField.clear();
-        numberOfBagsSpinner.getValueFactory().setValue(0);
-        flyingWithInfantCheckBox.setSelected(false);
-
-        System.out.println("Form cancelled and cleared");
+        System.out.println("Cancel clicked");
+        Platform.exit();
     }
 
     private void handleSave() {
         try {
-            // Create a SeatReservation object with the form data
-            SeatReservation reservation = new SeatReservation(
-                    flightDesignatorField.getText(),
-                    flightDatePicker.getValue(),
-                    firstNameField.getText(),
-                    lastNameField.getText()
-            );
-
-            // Set additional fields
-            reservation.setNumberOfBags(numberOfBagsSpinner.getValue());
+            // Populate the seatReservation instance variable using setter methods
+            seatReservation.setFlightDesignator(flightDesignatorField.getText());
+            seatReservation.setFlightDate(flightDatePicker.getValue());
+            seatReservation.setFirstName(firstNameField.getText());
+            seatReservation.setLastName(lastNameField.getText());
+            seatReservation.setNumberOfBags(numberOfBagsSpinner.getValue());
 
             if (flyingWithInfantCheckBox.isSelected()) {
-                reservation.makeFlyingWithInfant();
+                seatReservation.makeFlyingWithInfant();
             } else {
-                reservation.makeNotFlyingWithInfant();
+                seatReservation.makeNotFlyingWithInfant();
             }
 
-            // Display the reservation (in a real app, you'd save to database)
-            System.out.println("Reservation saved: " + reservation.toString());
-
-            // Show confirmation dialog
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Reservation Saved");
-            alert.setHeaderText(null);
-            alert.setContentText("Seat reservation has been saved successfully!");
-            alert.showAndWait();
+            // Display the reservation and exit
+            System.out.println(seatReservation.toString());
+            Platform.exit();
 
         } catch (IllegalArgumentException e) {
-            // Handle validation errors
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Validation Error");
-            alert.setHeaderText("Invalid Input");
-            alert.setContentText("Please check your flight designator (must be 4-6 characters).");
-            alert.showAndWait();
-        } catch (Exception e) {
-            // Handle other errors
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("Save Error");
-            alert.setContentText("An error occurred while saving: " + e.getMessage());
-            alert.showAndWait();
+            System.out.println("Error: Flight designator must be between 4 and 6 characters long.");
+        }
+    }
+
+
+    // Method to update UI with values from seatReservation instance
+    private void updateUI() {
+        flightDesignatorField.setText(seatReservation.getFlightDesignator());
+        flightDatePicker.setValue(seatReservation.getFlightDate());
+        firstNameField.setText(seatReservation.getFirstName());
+        lastNameField.setText(seatReservation.getLastName());
+        numberOfBagsSpinner.getValueFactory().setValue(seatReservation.getNumberOfBags());
+        flyingWithInfantCheckBox.setSelected(seatReservation.isFlyingWithInfant());
+
+        // Update number of passengers based on infant status
+        if (seatReservation.isFlyingWithInfant()) {
+            numberOfPassengersField.setText("2");
+        } else {
+            numberOfPassengersField.setText("1");
         }
     }
 
