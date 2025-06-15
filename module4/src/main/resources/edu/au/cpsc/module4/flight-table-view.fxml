@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+
+<TableView fx:id="flightTableView" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="edu.au.cpsc.module4.FlightTableViewController">
+    <columns>
+        <TableColumn fx:id="designatorCol" text="Flight Designator" prefWidth="120"/>
+        <TableColumn fx:id="departureCol" text="Departure Airport" prefWidth="120"/>
+        <TableColumn fx:id="arrivalCol" text="Arrival Airport" prefWidth="120"/>
+        <TableColumn fx:id="daysCol" text="Days of Week" prefWidth="150"/>
+    </columns>
+</TableView>

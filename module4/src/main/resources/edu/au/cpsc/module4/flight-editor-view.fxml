@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<GridPane hgap="10" vgap="10" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="edu.au.cpsc.module4.FlightEditorViewController">
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+
+    <Label text="Flight Designator:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+    <TextField fx:id="designatorField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+    <HBox spacing="10" GridPane.rowIndex="6" GridPane.columnIndex="1">
+        <Button fx:id="addUpdateButton" text="Add" onAction="#handleAddUpdateClick"/>
+        <Button fx:id="newButton" text="New" onAction="#handleNewClick"/>
+        <Button fx:id="deleteButton" text="Delete" onAction="#handleDeleteClick"/>
+    </HBox>
+</GridPane>

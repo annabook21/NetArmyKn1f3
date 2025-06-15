@@ -17,7 +17,7 @@ public class ScheduledFlight implements Serializable {
     private Set<DayOfWeek> daysOfWeek;
 
     public ScheduledFlight(String flightDesignator, String departureAirportIdent, LocalTime departureTime,
-                           String arrivalAirportIdent, LocalTime arrivalTime, Set<DayOfWeek> daysOfWeek) {
+                           String arrivalAirportIdent, String arrivalTime, Set<DayOfWeek> daysOfWeek) {
         // Use setters in the constructor to leverage validation
         setFlightDesignator(flightDesignator);
         setDepartureAirportIdent(departureAirportIdent);
