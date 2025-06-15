@@ -5,13 +5,11 @@ import javafx.scene.control.*;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.Set;
 
 public class FlightEditorViewController {
-
     // FXML UI Components
     @FXML private TextField designatorField;
     @FXML private TextField departureAirportField;
@@ -30,20 +28,16 @@ public class FlightEditorViewController {
 
     private EnumMap<DayOfWeek, ToggleButton> dayToggleMap;
 
-    public FlightEditorViewController(TextField arrivalTimeField) {
-        this.arrivalTimeField = arrivalTimeField;
-    }
+    // The invalid constructor that was here has been REMOVED.
 
     @FXML
     public void initialize() {
         setupDayToggleMap();
-        // The editor starts in a blank, disabled state
         clearEditor();
     }
 
-    /**
-     * Main method for the coordinator to show flight details in the editor.
-     */
+    // ... all other methods remain the same ...
+
     public void showFlightDetails(ScheduledFlight flight) {
         if (flight != null) {
             DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
@@ -52,22 +46,15 @@ public class FlightEditorViewController {
             departureTimeField.setText(flight.getDepartureTime().format(timeFormatter));
             arrivalAirportField.setText(flight.getArrivalAirportIdent());
             arrivalTimeField.setText(flight.getArrivalTime().format(timeFormatter));
-
             Set<DayOfWeek> activeDays = flight.getDaysOfWeek();
             dayToggleMap.forEach((day, button) -> button.setSelected(activeDays.contains(day)));
-
-            // Enable editor and set button states for "Update" mode
             setEditorState(true);
         } else {
-            // No flight selected, reset to "Add" mode
             clearEditor();
             setEditorState(false);
         }
     }
 
-    /**
-     * Reads the editor fields and USES SETTERS to update an existing flight object.
-     */
     public void updateFlightFromFields(ScheduledFlight flight) {
         flight.setFlightDesignator(designatorField.getText());
         flight.setDepartureAirportIdent(departureAirportField.getText());
@@ -77,58 +64,39 @@ public class FlightEditorViewController {
         flight.setDaysOfWeek(getSelectedDays());
     }
 
-    /**
-     * Reads the editor fields and CREATES A NEW flight object.
-     */
     public ScheduledFlight createFlightFromFields() {
-        // Get the text from the fields
         String departureTimeText = departureTimeField.getText();
         String arrivalTimeText = arrivalTimeField.getText();
-
-        // Parse the time strings into LocalTime objects
         LocalTime departureTime = LocalTime.parse(departureTimeText);
         LocalTime arrivalTime = LocalTime.parse(arrivalTimeText);
-
         return new ScheduledFlight(
                 designatorField.getText(),
                 departureAirportField.getText(),
-                departureTime, // Pass the LocalTime object
+                departureTime,
                 arrivalAirportField.getText(),
-                arrivalTime,   // Pass the LocalTime object
+                arrivalTime,
                 getSelectedDays()
         );
     }
 
-
-    // --- Button Actions & Callbacks ---
-
     @FXML
     private void handleAddUpdateClick() {
-        if (onAddUpdateButtonClick != null) {
-            onAddUpdateButtonClick.run(); // Execute the action defined by the main controller
-        }
+        if (onAddUpdateButtonClick != null) { onAddUpdateButtonClick.run(); }
     }
 
     @FXML
     private void handleNewClick() {
-        if (onNewButtonClick != null) {
-            onNewButtonClick.run();
-        }
+        if (onNewButtonClick != null) { onNewButtonClick.run(); }
     }
 
     @FXML
     private void handleDeleteClick() {
-        if (onDeleteButtonClick != null) {
-            onDeleteButtonClick.run();
-        }
+        if (onDeleteButtonClick != null) { onDeleteButtonClick.run(); }
     }
 
-    // Public setters for the main controller to define button behavior
     public void setOnAddUpdateButtonClick(Runnable onAddUpdateButtonClick) { this.onAddUpdateButtonClick = onAddUpdateButtonClick; }
     public void setOnNewButtonClick(Runnable onNewButtonClick) { this.onNewButtonClick = onNewButtonClick; }
     public void setOnDeleteButtonClick(Runnable onDeleteButtonClick) { this.onDeleteButtonClick = onDeleteButtonClick; }
-
-    // --- Helper Methods ---
 
     private void clearEditor() {
         designatorField.clear();
@@ -140,8 +108,6 @@ public class FlightEditorViewController {
     }
 
     private void setEditorState(boolean isItemSelected) {
-        // Toggles editability and button text/state
-        designatorField.setDisable(!isItemSelected); // For update, don't allow changing the key field
         addUpdateButton.setText(isItemSelected ? "Update" : "Add");
         deleteButton.setDisable(!isItemSelected);
     }
@@ -167,3 +133,4 @@ public class FlightEditorViewController {
         dayToggleMap.put(DayOfWeek.SUNDAY, sundayToggle);
     }
 }
+
