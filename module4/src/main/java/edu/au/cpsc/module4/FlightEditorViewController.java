@@ -81,15 +81,24 @@ public class FlightEditorViewController {
      * Reads the editor fields and CREATES A NEW flight object.
      */
     public ScheduledFlight createFlightFromFields() {
+        // Get the text from the fields
+        String departureTimeText = departureTimeField.getText();
+        String arrivalTimeText = arrivalTimeField.getText();
+
+        // Parse the time strings into LocalTime objects
+        LocalTime departureTime = LocalTime.parse(departureTimeText);
+        LocalTime arrivalTime = LocalTime.parse(arrivalTimeText);
+
         return new ScheduledFlight(
                 designatorField.getText(),
                 departureAirportField.getText(),
-                LocalTime.parse(departureTimeField.getText()),
+                departureTime, // Pass the LocalTime object
                 arrivalAirportField.getText(),
-                arrivalTimeField.getText(),
+                arrivalTime,   // Pass the LocalTime object
                 getSelectedDays()
         );
     }
+
 
     // --- Button Actions & Callbacks ---
 

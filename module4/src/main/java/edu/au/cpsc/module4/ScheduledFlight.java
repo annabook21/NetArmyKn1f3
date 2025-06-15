@@ -6,51 +6,37 @@ import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 
-// Implement Serializable to allow objects of this class to be written to/read from files.
 public class ScheduledFlight implements Serializable {
 
     private String flightDesignator;
     private String departureAirportIdent;
-    private LocalTime departureTime;
+    private LocalTime departureTime; // This is a LocalTime
     private String arrivalAirportIdent;
-    private LocalTime arrivalTime;
+    private LocalTime arrivalTime;   // This is also a LocalTime
     private Set<DayOfWeek> daysOfWeek;
 
+    /**
+     * This is the constructor that needs to be corrected.
+     * Make sure the parameters for time are LocalTime, not String.
+     */
     public ScheduledFlight(String flightDesignator, String departureAirportIdent, LocalTime departureTime,
-                           String arrivalAirportIdent, String arrivalTime, Set<DayOfWeek> daysOfWeek) {
-        // Use setters in the constructor to leverage validation
+                           String arrivalAirportIdent, LocalTime arrivalTime, Set<DayOfWeek> daysOfWeek) {
+
         setFlightDesignator(flightDesignator);
         setDepartureAirportIdent(departureAirportIdent);
-        setDepartureTime(departureTime);
+        setDepartureTime(departureTime); // This setter expects LocalTime
         setArrivalAirportIdent(arrivalAirportIdent);
-        setArrivalTime(arrivalTime);
+        setArrivalTime(arrivalTime);     // This setter expects LocalTime
         setDaysOfWeek(daysOfWeek);
     }
 
     // --- Getters ---
-    public String getFlightDesignator() {
-        return flightDesignator;
-    }
-
-    public String getDepartureAirportIdent() {
-        return departureAirportIdent;
-    }
-
-    public LocalTime getDepartureTime() {
-        return departureTime;
-    }
-
-    public String getArrivalAirportIdent() {
-        return arrivalAirportIdent;
-    }
-
-    public LocalTime getArrivalTime() {
-        return arrivalTime;
-    }
-
-    public Set<DayOfWeek> getDaysOfWeek() {
-        return daysOfWeek;
-    }
+    public String getFlightDesignator() { return flightDesignator; }
+    public String getDepartureAirportIdent() { return departureAirportIdent; }
+    public LocalTime getDepartureTime() { return departureTime; }
+    public String getArrivalAirportIdent() { return arrivalAirportIdent; }
+    public LocalTime getArrivalTime() { return arrivalTime; }
+    public Set<DayOfWeek> getDaysOfWeek() { return daysOfWeek; }
 
     // --- Setters with Validation ---
     public void setFlightDesignator(String flightDesignator) {
@@ -92,8 +78,6 @@ public class ScheduledFlight implements Serializable {
         if (daysOfWeek == null) {
             throw new IllegalArgumentException("Days of week collection cannot be null.");
         }
-        // Create a new HashSet to ensure the set is mutable and owned by this object
         this.daysOfWeek = new HashSet<>(daysOfWeek);
     }
 }
-
