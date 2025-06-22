@@ -15,9 +15,9 @@
         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
     </rowConstraints>
     <children>
-        <Button fx:id="airportsbtn" mnemonicParsing="false" text="Airports" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
-        <Button fx:id="seatreservationbtn" mnemonicParsing="false" text="Seat Reservations" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
-        <Button fx:id="flightschedulebtn" mnemonicParsing="false" text="Flight Schedule" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
-        <Button fx:id="aircraftbtn" mnemonicParsing="false" text="Aircraft" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+        <Button styleClass="airports-btn" mnemonicParsing="false" text="Airports" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+        <Button styleClass="seat-reservation-btn" mnemonicParsing="false" text="Seat Reservations" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+        <Button styleClass="flight-schedule-btn" mnemonicParsing="false" text="Flight Schedule" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+        <Button styleClass="aircraft-btn" mnemonicParsing="false" text="Aircraft" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
     </children>
 </GridPane>

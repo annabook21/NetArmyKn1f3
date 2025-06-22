@@ -21,12 +21,13 @@
     -fx-pref-width: 200px;
     -fx-pref-height: 100px;
     -fx-text-fill: #333333;
-    -fx-background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+    -fx-background-color: rgba(255, 255, 255, 0.8);
     -fx-border-color: #cccccc;
     -fx-border-radius: 5px;
     -fx-background-radius: 5px;
-    -fx-content-display: top; /* Display graphic above text */
-    -fx-opacity: 0.9; /* Partially transparent as mentioned in assignment */
+    -fx-content-display: top;
+    -fx-opacity: 0.9;
+    -fx-graphic-text-gap: 10px; /* Space between icon and text */
 }
 
 /* Button hover effects */
@@ -36,19 +37,19 @@
     -fx-scale-y: 1.05;
 }
 
-/* 2. Use at least four (4) image assets as icons */
-#airports-btn {
+/* 2. Use at least four (4) image assets as icons - CHANGED FROM # TO . */
+.airports-btn {
     -fx-graphic: url("../icons/airports.png");
 }
 
-#seat-reservation-btn {
+.seat-reservation-btn {
     -fx-graphic: url("../icons/reservations.png");
 }
 
-#flight-schedule-btn {
+.flight-schedule-btn {
     -fx-graphic: url("../icons/schedule.png");
 }
 
-#aircraft-btn {
+.aircraft-btn {
     -fx-graphic: url("../icons/aircraft.png");
 }
