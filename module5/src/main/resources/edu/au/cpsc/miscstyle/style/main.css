@@ -1,0 +1,56 @@
+/* 1. Fix background - use styleClass instead of ID */
+.background {
+    -fx-background-color: #dad7cd;
+}
+
+/* 2. Fix rectangles - use styleClass selectors */
+.foreground {
+    -fx-fill: #272838;
+}
+
+.highlight {
+    -fx-fill: #ff6b6b;
+}
+
+.accent {
+    -fx-fill: #7e7f9a;
+}
+
+/* 3 & 4. Fix Rectangle selector - target the actual Rectangle in the Group */
+Rectangle {
+    -fx-stroke-width: 5px;
+    -fx-stroke-type: inside;
+    -fx-stroke: rgb(70, 155, 75);
+    -fx-fill: transparent;
+}
+
+/* 5. Circle selector */
+Circle {
+    -fx-fill: #7e7f9a;
+}
+
+/* Rest of your CSS is correct */
+.hyperlink {
+    -fx-text-fill: #ff6b6b;
+    -fx-underline: true;
+}
+
+.hyperlink:visited {
+    -fx-text-fill: #272838;
+}
+
+.combo-box .arrow-button {
+    -fx-background-color: #ff6b6b;
+}
+
+.combo-box .arrow {
+    -fx-background-color: white;
+}
+
+.check-box .mark {
+    -fx-background-color: #7e7f9a;
+}
+
+#button-row {
+    -fx-alignment: center-right;
+}
