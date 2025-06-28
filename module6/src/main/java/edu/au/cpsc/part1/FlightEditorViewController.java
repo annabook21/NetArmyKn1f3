@@ -134,4 +134,38 @@ public class FlightEditorViewController {
         saturdayToggle.setSelected(false);
         sundayToggle.setSelected(false);
     }
+
+    // Method called by FlightScheduleApplicationController
+    public void showFlightDetails(ScheduledFlight flight) {
+        if (flight != null) {
+            // Populate fields with flight data
+            uiModel.flightNumberProperty().set(flight.getFlightNumber());
+            uiModel.departureProperty().set(flight.getDepartureAirport());
+            uiModel.arrivalProperty().set(flight.getArrivalAirport());
+            uiModel.departureTimeProperty().set(flight.getDepartureTime());
+            uiModel.arrivalTimeProperty().set(flight.getArrivalTime());
+
+            // Set days of week toggles
+            setDayToggles(flight.getDaysOfWeek());
+
+            // Mark as existing (not new)
+            uiModel.markAsExisting();
+        } else {
+            // Clear everything for new flight
+            uiModel.markAsNew();
+            clearDayToggles();
+        }
+    }
+
+    private void setDayToggles(String daysOfWeek) {
+        if (daysOfWeek != null) {
+            mondayToggle.setSelected(daysOfWeek.contains("M"));
+            tuesdayToggle.setSelected(daysOfWeek.contains("T"));
+            wednesdayToggle.setSelected(daysOfWeek.contains("W"));
+            thursdayToggle.setSelected(daysOfWeek.contains("R"));
+            fridayToggle.setSelected(daysOfWeek.contains("F"));
+            saturdayToggle.setSelected(daysOfWeek.contains("S"));
+            sundayToggle.setSelected(daysOfWeek.contains("U"));
+        }
+    }
 }
