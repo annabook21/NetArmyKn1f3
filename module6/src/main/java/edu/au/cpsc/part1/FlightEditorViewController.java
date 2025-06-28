@@ -2,135 +2,136 @@ package edu.au.cpsc.part1;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import java.time.DayOfWeek;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.EnumMap;
-import java.util.HashSet;
-import java.util.Set;
 
 public class FlightEditorViewController {
-    // FXML UI Components
+
+    private FlightUIModel uiModel = new FlightUIModel();
+
+    // FXML Fields matching your FXML file
     @FXML private TextField designatorField;
     @FXML private TextField departureAirportField;
     @FXML private TextField departureTimeField;
     @FXML private TextField arrivalAirportField;
     @FXML private TextField arrivalTimeField;
-    @FXML private ToggleButton mondayToggle, tuesdayToggle, wednesdayToggle,
-            thursdayToggle, fridayToggle, saturdayToggle, sundayToggle;
+
+    // Day toggles
+    @FXML private ToggleButton mondayToggle;
+    @FXML private ToggleButton tuesdayToggle;
+    @FXML private ToggleButton wednesdayToggle;
+    @FXML private ToggleButton thursdayToggle;
+    @FXML private ToggleButton fridayToggle;
+    @FXML private ToggleButton saturdayToggle;
+    @FXML private ToggleButton sundayToggle;
+
+    // Buttons
     @FXML private Button addUpdateButton;
+    @FXML private Button newButton;
     @FXML private Button deleteButton;
 
-    // Callbacks to communicate actions back to the main controller
-    private Runnable onAddUpdateButtonClick;
-    private Runnable onNewButtonClick;
-    private Runnable onDeleteButtonClick;
-
-    private EnumMap<DayOfWeek, ToggleButton> dayToggleMap;
-
-    // The invalid constructor that was here has been REMOVED.
-
     @FXML
-    public void initialize() {
-        setupDayToggleMap();
-        clearEditor();
+    private void initialize() {
+        setupBindings();
+        setupValidationVisuals();
+        setupButtonStates();
+        uiModel.markAsNew();
     }
 
-    // ... all other methods remain the same ...
-
-    public void showFlightDetails(ScheduledFlight flight) {
-        if (flight != null) {
-            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-            designatorField.setText(flight.getFlightDesignator());
-            departureAirportField.setText(flight.getDepartureAirportIdent());
-            departureTimeField.setText(flight.getDepartureTime().format(timeFormatter));
-            arrivalAirportField.setText(flight.getArrivalAirportIdent());
-            arrivalTimeField.setText(flight.getArrivalTime().format(timeFormatter));
-            Set<DayOfWeek> activeDays = flight.getDaysOfWeek();
-            dayToggleMap.forEach((day, button) -> button.setSelected(activeDays.contains(day)));
-            setEditorState(true);
-        } else {
-            clearEditor();
-            setEditorState(false);
-        }
+    private void setupBindings() {
+        // Bind text fields to model properties
+        designatorField.textProperty().bindBidirectional(uiModel.flightNumberProperty());
+        departureAirportField.textProperty().bindBidirectional(uiModel.departureProperty());
+        arrivalAirportField.textProperty().bindBidirectional(uiModel.arrivalProperty());
+        departureTimeField.textProperty().bindBidirectional(uiModel.departureTimeProperty());
+        arrivalTimeField.textProperty().bindBidirectional(uiModel.arrivalTimeProperty());
     }
 
-    public void updateFlightFromFields(ScheduledFlight flight) {
-        flight.setFlightDesignator(designatorField.getText());
-        flight.setDepartureAirportIdent(departureAirportField.getText());
-        flight.setDepartureTime(LocalTime.parse(departureTimeField.getText()));
-        flight.setArrivalAirportIdent(arrivalAirportField.getText());
-        flight.setArrivalTime(LocalTime.parse(arrivalTimeField.getText()));
-        flight.setDaysOfWeek(getSelectedDays());
+    private void setupValidationVisuals() {
+        // Red border for invalid fields
+        uiModel.flightNumberValidProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal && !uiModel.flightNumberProperty().get().isEmpty()) {
+                designatorField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
+            } else {
+                designatorField.setStyle("");
+            }
+        });
+
+        uiModel.departureValidProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal && !uiModel.departureProperty().get().isEmpty()) {
+                departureAirportField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
+            } else {
+                departureAirportField.setStyle("");
+            }
+        });
+
+        uiModel.arrivalValidProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal && !uiModel.arrivalProperty().get().isEmpty()) {
+                arrivalAirportField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
+            } else {
+                arrivalAirportField.setStyle("");
+            }
+        });
+
+        uiModel.departureTimeValidProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal && !uiModel.departureTimeProperty().get().isEmpty()) {
+                departureTimeField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
+            } else {
+                departureTimeField.setStyle("");
+            }
+        });
+
+        uiModel.arrivalTimeValidProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal && !uiModel.arrivalTimeProperty().get().isEmpty()) {
+                arrivalTimeField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
+            } else {
+                arrivalTimeField.setStyle("");
+            }
+        });
     }
 
-    public ScheduledFlight createFlightFromFields() {
-        String departureTimeText = departureTimeField.getText();
-        String arrivalTimeText = arrivalTimeField.getText();
-        LocalTime departureTime = LocalTime.parse(departureTimeText);
-        LocalTime arrivalTime = LocalTime.parse(arrivalTimeText);
-        return new ScheduledFlight(
-                designatorField.getText(),
-                departureAirportField.getText(),
-                departureTime,
-                arrivalAirportField.getText(),
-                arrivalTime,
-                getSelectedDays()
+    private void setupButtonStates() {
+        // Add/Update button: enabled only when all fields valid AND (new OR modified)
+        addUpdateButton.disableProperty().bind(
+                uiModel.allFieldsValidProperty().not()
+                        .or(uiModel.isNewProperty().not().and(uiModel.isModifiedProperty().not()))
         );
+
+        // Delete button: enabled when not new (i.e., editing existing)
+        deleteButton.disableProperty().bind(uiModel.isNewProperty());
+
+        // Update button text based on state
+        uiModel.isNewProperty().addListener((obs, oldVal, newVal) -> {
+            addUpdateButton.setText(newVal ? "Add" : "Update");
+        });
     }
 
     @FXML
     private void handleAddUpdateClick() {
-        if (onAddUpdateButtonClick != null) { onAddUpdateButtonClick.run(); }
+        if (uiModel.areAllFieldsValid()) {
+            System.out.println("Saving flight: " + uiModel.getFlightNumber());
+            uiModel.markAsExisting();
+        }
     }
 
     @FXML
     private void handleNewClick() {
-        if (onNewButtonClick != null) { onNewButtonClick.run(); }
+        uiModel.markAsNew();
+        clearDayToggles();
     }
 
     @FXML
     private void handleDeleteClick() {
-        if (onDeleteButtonClick != null) { onDeleteButtonClick.run(); }
+        System.out.println("Deleting flight: " + uiModel.getFlightNumber());
+        uiModel.markAsNew();
+        clearDayToggles();
     }
 
-    public void setOnAddUpdateButtonClick(Runnable onAddUpdateButtonClick) { this.onAddUpdateButtonClick = onAddUpdateButtonClick; }
-    public void setOnNewButtonClick(Runnable onNewButtonClick) { this.onNewButtonClick = onNewButtonClick; }
-    public void setOnDeleteButtonClick(Runnable onDeleteButtonClick) { this.onDeleteButtonClick = onDeleteButtonClick; }
-
-    private void clearEditor() {
-        designatorField.clear();
-        departureAirportField.clear();
-        departureTimeField.clear();
-        arrivalAirportField.clear();
-        arrivalTimeField.clear();
-        dayToggleMap.values().forEach(button -> button.setSelected(false));
-    }
-
-    private void setEditorState(boolean isItemSelected) {
-        addUpdateButton.setText(isItemSelected ? "Update" : "Add");
-        deleteButton.setDisable(!isItemSelected);
-    }
-
-    private Set<DayOfWeek> getSelectedDays() {
-        Set<DayOfWeek> selectedDays = new HashSet<>();
-        dayToggleMap.forEach((day, button) -> {
-            if (button.isSelected()) {
-                selectedDays.add(day);
-            }
-        });
-        return selectedDays;
-    }
-
-    private void setupDayToggleMap() {
-        dayToggleMap = new EnumMap<>(DayOfWeek.class);
-        dayToggleMap.put(DayOfWeek.MONDAY, mondayToggle);
-        dayToggleMap.put(DayOfWeek.TUESDAY, tuesdayToggle);
-        dayToggleMap.put(DayOfWeek.WEDNESDAY, wednesdayToggle);
-        dayToggleMap.put(DayOfWeek.THURSDAY, thursdayToggle);
-        dayToggleMap.put(DayOfWeek.FRIDAY, fridayToggle);
-        dayToggleMap.put(DayOfWeek.SATURDAY, saturdayToggle);
-        dayToggleMap.put(DayOfWeek.SUNDAY, sundayToggle);
+    private void clearDayToggles() {
+        mondayToggle.setSelected(false);
+        tuesdayToggle.setSelected(false);
+        wednesdayToggle.setSelected(false);
+        thursdayToggle.setSelected(false);
+        fridayToggle.setSelected(false);
+        saturdayToggle.setSelected(false);
+        sundayToggle.setSelected(false);
     }
 }
-
