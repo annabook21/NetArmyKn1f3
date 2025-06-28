@@ -139,11 +139,11 @@ public class FlightEditorViewController {
     public void showFlightDetails(ScheduledFlight flight) {
         if (flight != null) {
             // Populate fields with flight data
-            uiModel.flightNumberProperty().set(flight.getFlightNumber());
-            uiModel.departureProperty().set(flight.getDepartureAirport());
-            uiModel.arrivalProperty().set(flight.getArrivalAirport());
-            uiModel.departureTimeProperty().set(flight.getDepartureTime());
-            uiModel.arrivalTimeProperty().set(flight.getArrivalTime());
+            uiModel.flightNumberProperty().set(flight.getFlightDesignator());
+            uiModel.departureProperty().set(flight.getDepartureAirportIdent());
+            uiModel.arrivalProperty().set(flight.getArrivalAirportIdent());
+            uiModel.departureTimeProperty().set(flight.getDepartureTime().toString());
+            uiModel.arrivalTimeProperty().set(flight.getArrivalTime().toString());
 
             // Set days of week toggles
             setDayToggles(flight.getDaysOfWeek());
@@ -157,15 +157,33 @@ public class FlightEditorViewController {
         }
     }
 
-    private void setDayToggles(String daysOfWeek) {
+    private void setDayToggles(java.util.Set<java.time.DayOfWeek> daysOfWeek) {
         if (daysOfWeek != null) {
-            mondayToggle.setSelected(daysOfWeek.contains("M"));
-            tuesdayToggle.setSelected(daysOfWeek.contains("T"));
-            wednesdayToggle.setSelected(daysOfWeek.contains("W"));
-            thursdayToggle.setSelected(daysOfWeek.contains("R"));
-            fridayToggle.setSelected(daysOfWeek.contains("F"));
-            saturdayToggle.setSelected(daysOfWeek.contains("S"));
-            sundayToggle.setSelected(daysOfWeek.contains("U"));
+            mondayToggle.setSelected(daysOfWeek.contains(java.time.DayOfWeek.MONDAY));
+            tuesdayToggle.setSelected(daysOfWeek.contains(java.time.DayOfWeek.TUESDAY));
+            wednesdayToggle.setSelected(daysOfWeek.contains(java.time.DayOfWeek.WEDNESDAY));
+            thursdayToggle.setSelected(daysOfWeek.contains(java.time.DayOfWeek.THURSDAY));
+            fridayToggle.setSelected(daysOfWeek.contains(java.time.DayOfWeek.FRIDAY));
+            saturdayToggle.setSelected(daysOfWeek.contains(java.time.DayOfWeek.SATURDAY));
+            sundayToggle.setSelected(daysOfWeek.contains(java.time.DayOfWeek.SUNDAY));
         }
+    }
+
+    // Methods called by FlightScheduleApplicationController
+    public void setOnNewButtonClick(Runnable onNewButtonClick) {
+        // Store callback if needed, or just ignore since we handle internally
+    }
+
+    public void setOnSaveButtonClick(Runnable onSaveButtonClick) {
+        // Store callback if needed, or just ignore since we handle internally
+    }
+
+    public void setOnDeleteButtonClick(Runnable onDeleteButtonClick) {
+        // Store callback if needed, or just ignore since we handle internally
+    }
+
+    public void newFlight() {
+        // Called externally to start a new flight
+        handleNewClick();
     }
 }
