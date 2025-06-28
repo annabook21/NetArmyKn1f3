@@ -146,6 +146,62 @@ public class FlightEditorViewController {
         }
     }
 
+    public ScheduledFlight createFlightFromFields() {
+        try {
+            String flightDesignator = uiModel.getFlightNumber();
+            String departureAirportIdent = uiModel.getDeparture();
+            String arrivalAirportIdent = uiModel.getArrival();
+            java.time.LocalTime departureTime = java.time.LocalTime.parse(uiModel.getDepartureTime());
+            java.time.LocalTime arrivalTime = java.time.LocalTime.parse(uiModel.getArrivalTime());
+
+            java.util.Set<java.time.DayOfWeek> daysOfWeek = new java.util.HashSet<>();
+            if (mondayToggle.isSelected()) daysOfWeek.add(java.time.DayOfWeek.MONDAY);
+            if (tuesdayToggle.isSelected()) daysOfWeek.add(java.time.DayOfWeek.TUESDAY);
+            if (wednesdayToggle.isSelected()) daysOfWeek.add(java.time.DayOfWeek.WEDNESDAY);
+            if (thursdayToggle.isSelected()) daysOfWeek.add(java.time.DayOfWeek.THURSDAY);
+            if (fridayToggle.isSelected()) daysOfWeek.add(java.time.DayOfWeek.FRIDAY);
+            if (saturdayToggle.isSelected()) daysOfWeek.add(java.time.DayOfWeek.SATURDAY);
+            if (sundayToggle.isSelected()) daysOfWeek.add(java.time.DayOfWeek.SUNDAY);
+
+            return new ScheduledFlight(flightDesignator, departureAirportIdent, departureTime, arrivalAirportIdent, arrivalTime, daysOfWeek);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public void updateFlightFromFields(ScheduledFlight flight) {
+        if (flight != null && uiModel.areAllFieldsValid()) {
+            try {
+                String flightDesignator = uiModel.getFlightNumber();
+                String departureAirportIdent = uiModel.getDeparture();
+                String arrivalAirportIdent = uiModel.getArrival();
+                java.time.LocalTime departureTime = java.time.LocalTime.parse(uiModel.getDepartureTime());
+                java.time.LocalTime arrivalTime = java.time.LocalTime.parse(uiModel.getArrivalTime());
+
+                java.util.Set<java.time.DayOfWeek> daysOfWeek = new java.util.HashSet<>();
+                if (mondayToggle.isSelected()) daysOfWeek.add(java.time.DayOfWeek.MONDAY);
+                if (tuesdayToggle.isSelected()) daysOfWeek.add(java.time.DayOfWeek.TUESDAY);
+                if (wednesdayToggle.isSelected()) daysOfWeek.add(java.time.DayOfWeek.WEDNESDAY);
+                if (thursdayToggle.isSelected()) daysOfWeek.add(java.time.DayOfWeek.THURSDAY);
+                if (fridayToggle.isSelected()) daysOfWeek.add(java.time.DayOfWeek.FRIDAY);
+                if (saturdayToggle.isSelected()) daysOfWeek.add(java.time.DayOfWeek.SATURDAY);
+                if (sundayToggle.isSelected()) daysOfWeek.add(java.time.DayOfWeek.SUNDAY);
+
+                // Update the flight object with new values
+                flight.setFlightDesignator(flightDesignator);
+                flight.setDepartureAirportIdent(departureAirportIdent);
+                flight.setArrivalAirportIdent(arrivalAirportIdent);
+                flight.setDepartureTime(departureTime);
+                flight.setArrivalTime(arrivalTime);
+                flight.setDaysOfWeek(daysOfWeek);
+                
+                uiModel.markAsExisting(); // Mark as existing after successful update
+            } catch (Exception e) {
+                throw new RuntimeException("Invalid input format: " + e.getMessage(), e);
+            }
+        }
+    }
+
     public void setOnNewButtonClick(Runnable onNewButtonClick) {}
     public void setOnSaveButtonClick(Runnable onSaveButtonClick) {}
     public void setOnDeleteButtonClick(Runnable onDeleteButtonClick) {}

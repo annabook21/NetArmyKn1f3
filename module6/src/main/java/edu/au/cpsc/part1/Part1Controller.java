@@ -11,7 +11,7 @@ public class Part1Controller {
   @FXML
   private TextField messageTextField, echoTextField, firstBidirectionalTextField, secondBidirectionalTextField;
   @FXML
-  private ImageView secretOverlapImageView;  // Fixed: was secretOverlayImageView
+  private ImageView secretOverlayImageView;  // Fixed: changed from secretOverlapImageView to match FXML
   @FXML
   private Slider secretSlider;
   @FXML
@@ -31,7 +31,7 @@ public class Part1Controller {
     firstBidirectionalTextField.textProperty().bindBidirectional(secondBidirectionalTextField.textProperty());
 
     // 3. Image opacity binding
-    secretOverlapImageView.opacityProperty().bind(secretSlider.valueProperty());
+    secretOverlayImageView.opacityProperty().bind(secretSlider.valueProperty());
 
     // 4. Checkbox to label binding
     selectMeLabel.textProperty().bind(selectMeCheckBox.selectedProperty().asString());
