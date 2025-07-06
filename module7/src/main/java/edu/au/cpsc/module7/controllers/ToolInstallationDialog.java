@@ -360,3 +360,5 @@ public class ToolInstallationDialog extends Stage implements Initializable {
         ToolInstallationDialog dialog = new ToolInstallationDialog(toolsManager, availability);
         dialog.showAndWait();
     }
+
+}

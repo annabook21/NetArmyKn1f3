@@ -1,7 +1,7 @@
 package edu.au.cpsc.module7.services;
 
-import com.yourname.alwaysdns.models.QueryType;
-import com.yourname.alwaysdns.models.SystemInfo;
+import edu.au.cpsc.module7.models.QueryType;
+import edu.au.cpsc.module7.models.SystemInfo;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 
@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.nio.file.attribute.PosixFilePermission;
 
 /**
  * Manages system DNS tools - detection, installation, and validation

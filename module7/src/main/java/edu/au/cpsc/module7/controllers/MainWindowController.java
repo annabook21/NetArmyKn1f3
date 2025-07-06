@@ -1,9 +1,10 @@
 package edu.au.cpsc.module7.controllers;
 
-import edu.au.cpsc.module7.DNSQueryService;
-import edu.au.cpsc.module7.SettingsService;
-import edu.au.cpsc.module7.QueryResult;
-import edu.au.cpsc.module7.QueryType;
+import edu.au.cpsc.module7.models.QueryResult;
+import edu.au.cpsc.module7.models.QueryType;
+import edu.au.cpsc.module7.services.DNSQueryService;
+import edu.au.cpsc.module7.services.SettingsService;
+import edu.au.cpsc.module7.services.SystemToolsManager;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -27,6 +28,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.binding.Bindings;
 
 /**
  * Main window controller for the AlwaysDNS application
@@ -66,6 +68,9 @@ public class MainWindowController implements Initializable {
             setupKeyboardShortcuts();
             loadSettings();
 
+            // Check for required tools
+            checkAndSetupTools();
+
             // Set initial state
             updateUIState(false);
             statusLabel.setText("Ready");
@@ -75,6 +80,89 @@ public class MainWindowController implements Initializable {
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Failed to initialize controller", e);
             showErrorAlert("Initialization Error", "Failed to initialize application", e.getMessage());
+        }
+    }
+
+    /**
+     * Checks for required DNS tools and offers to install them if missing
+     */
+    private void checkAndSetupTools() {
+        try {
+            SystemToolsManager toolsManager = new SystemToolsManager();
+            Map<String, Boolean> toolAvailability = toolsManager.checkToolAvailability();
+
+            List<String> missingTools = toolsManager.getMissingTools();
+
+            if (!missingTools.isEmpty()) {
+                LOGGER.warning("Missing DNS tools detected: " + missingTools);
+
+                // Show notification in status
+                statusLabel.setText("Missing DNS tools detected - click here to install");
+                statusLabel.setStyle("-fx-text-fill: orange; -fx-cursor: hand;");
+                statusLabel.setOnMouseClicked(e -> showToolInstallationDialog(toolsManager));
+
+                // Also show immediate dialog asking user
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Missing DNS Tools");
+                    alert.setHeaderText("Required DNS tools are missing");
+                    alert.setContentText(
+                            "The following DNS tools are not installed:\n\n" +
+                                    String.join(", ", missingTools) + "\n\n" +
+                                    "Would you like to install them automatically?"
+                    );
+
+                    ButtonType installButton = new ButtonType("Install Now");
+                    ButtonType laterButton = new ButtonType("Later");
+                    alert.getButtonTypes().setAll(installButton, laterButton);
+
+                    alert.showAndWait().ifPresent(response -> {
+                        if (response == installButton) {
+                            showToolInstallationDialog(toolsManager);
+                        }
+                    });
+                });
+            } else {
+                LOGGER.info("All required DNS tools are available");
+                statusLabel.setText("All DNS tools available - Ready");
+                statusLabel.setStyle("-fx-text-fill: green;");
+            }
+
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Error checking tool availability", e);
+            statusLabel.setText("Could not verify DNS tools - some features may not work");
+            statusLabel.setStyle("-fx-text-fill: orange;");
+        }
+    }
+
+    /**
+     * Shows the tool installation dialog
+     */
+    private void showToolInstallationDialog(SystemToolsManager toolsManager) {
+        try {
+            ToolInstallationDialog.showInstallationDialog(toolsManager);
+
+            // After dialog closes, re-check tools
+            checkAndSetupTools();
+
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error showing tool installation dialog", e);
+            showErrorAlert("Tool Installation Error",
+                    "Failed to open tool installation dialog",
+                    e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleManageTools() {
+        try {
+            SystemToolsManager toolsManager = new SystemToolsManager();
+            showToolInstallationDialog(toolsManager);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error opening tools manager", e);
+            showErrorAlert("Tools Manager Error",
+                    "Failed to open DNS tools manager",
+                    e.getMessage());
         }
     }
 
@@ -258,12 +346,16 @@ public class MainWindowController implements Initializable {
         // Bind button states
         runButton.disableProperty().bind(task.runningProperty());
         runButton.textProperty().bind(
-                task.runningProperty().map(running -> running ? "Cancel" : "Run Queries")
+                Bindings.when(task.runningProperty())
+                        .then("Cancel")
+                        .otherwise("Run Queries")
         );
 
         // Bind status
         statusLabel.textProperty().bind(
-                task.runningProperty().map(running -> running ? "Running queries..." : "Ready")
+                Bindings.when(task.runningProperty())
+                        .then("Running queries...")
+                        .otherwise("Ready")
         );
 
         // Handle completion
