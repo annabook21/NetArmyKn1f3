@@ -117,7 +117,7 @@ public class ToolInstallationDialog extends Stage implements Initializable {
 
         // Apply CSS if available
         try {
-            URL cssUrl = getClass().getResource("/com/yourname/alwaysdns/styles/terminal.css");
+            URL cssUrl = getClass().getResource("/edu/au/cpsc/module7/styles/terminal.css");
             if (cssUrl != null) {
                 scene.getStylesheets().add(cssUrl.toExternalForm());
             }

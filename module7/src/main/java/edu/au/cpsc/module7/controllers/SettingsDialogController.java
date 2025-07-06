@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 public class SettingsDialogController implements Initializable {
     private static final Logger LOGGER = Logger.getLogger(SettingsDialogController.class.getName());
 
-    @FXML private TextField pythonPathField;
+    @FXML private TextField pythonPathField; // may be null if Python section removed from FXML
     @FXML private Spinner<Integer> timeoutSpinner;
     @FXML private Spinner<Integer> historySpinner;
     @FXML private CheckBox autoSaveCheckBox;
@@ -74,17 +74,27 @@ public class SettingsDialogController implements Initializable {
     }
 
     private void setupEventHandlers() {
-        browsePathButton.setOnAction(e -> browsePythonPath());
+        if (browsePathButton != null) {
+            browsePathButton.setOnAction(e -> browsePythonPath());
+        }
         resetButton.setOnAction(e -> resetToDefaults());
         saveButton.setOnAction(e -> saveSettings());
         cancelButton.setOnAction(e -> handleCancel());
     }
 
     private void loadCurrentSettings() {
-        if (settingsService == null) return;
+        if (settingsService == null) {
+            try {
+                settingsService = new edu.au.cpsc.module7.services.SettingsService();
+            } catch (Exception ignored) {
+                return; // Cannot load settings
+            }
+        }
 
         try {
-            pythonPathField.setText(settingsService.getPythonPath());
+            if (pythonPathField != null) {
+                pythonPathField.setText(settingsService.getPythonPath());
+            }
             timeoutSpinner.getValueFactory().setValue(settingsService.getTimeoutSeconds());
             historySpinner.getValueFactory().setValue(settingsService.getMaxHistory());
             autoSaveCheckBox.setSelected(settingsService.getAutoSaveResults());
@@ -99,6 +109,7 @@ public class SettingsDialogController implements Initializable {
     }
 
     private void browsePythonPath() {
+        if (pythonPathField == null) return; // section removed
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Python Interpreter");
 
@@ -119,7 +130,9 @@ public class SettingsDialogController implements Initializable {
 
         File selectedFile = fileChooser.showOpenDialog(browsePathButton.getScene().getWindow());
         if (selectedFile != null) {
-            pythonPathField.setText(selectedFile.getAbsolutePath());
+            if (pythonPathField != null) {
+                pythonPathField.setText(selectedFile.getAbsolutePath());
+            }
         }
     }
 
@@ -131,7 +144,9 @@ public class SettingsDialogController implements Initializable {
 
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                pythonPathField.setText("/usr/bin/python3");
+                if (pythonPathField != null) {
+                    pythonPathField.setText("/usr/bin/python3");
+                }
                 timeoutSpinner.getValueFactory().setValue(30);
                 historySpinner.getValueFactory().setValue(20);
                 autoSaveCheckBox.setSelected(false);
@@ -144,8 +159,12 @@ public class SettingsDialogController implements Initializable {
 
     private void saveSettings() {
         if (settingsService == null) {
-            showErrorAlert("Settings Error", "Settings service not available", null);
-            return;
+            try {
+                settingsService = new edu.au.cpsc.module7.services.SettingsService();
+            } catch (Exception e) {
+                showErrorAlert("Settings Error", "Settings service not available", null);
+                return;
+            }
         }
 
         try {
@@ -155,7 +174,9 @@ public class SettingsDialogController implements Initializable {
             }
 
             // Save settings
-            settingsService.setSetting("python.path", pythonPathField.getText());
+            if (pythonPathField != null) {
+                settingsService.setSetting("python.path", pythonPathField.getText());
+            }
             settingsService.setSetting("timeout.seconds", timeoutSpinner.getValue().toString());
             settingsService.setSetting("max.history", historySpinner.getValue().toString());
             settingsService.setSetting("auto.save.results", String.valueOf(autoSaveCheckBox.isSelected()));
@@ -182,7 +203,10 @@ public class SettingsDialogController implements Initializable {
     }
 
     private boolean validateSettings() {
-        // Validate Python path
+        if (pythonPathField == null) {
+            return true; // no python validation needed
+        }
+
         String pythonPath = pythonPathField.getText();
         if (pythonPath == null || pythonPath.trim().isEmpty()) {
             showErrorAlert("Validation Error", "Python path cannot be empty", null);
@@ -242,7 +266,8 @@ public class SettingsDialogController implements Initializable {
         if (settingsService == null) return false;
 
         try {
-            return !pythonPathField.getText().equals(settingsService.getPythonPath()) ||
+            boolean pythonChanged = (pythonPathField != null) && !pythonPathField.getText().equals(settingsService.getPythonPath());
+            return pythonChanged ||
                     !timeoutSpinner.getValue().equals(settingsService.getTimeoutSeconds()) ||
                     !historySpinner.getValue().equals(settingsService.getMaxHistory()) ||
                     autoSaveCheckBox.isSelected() != settingsService.getAutoSaveResults() ||

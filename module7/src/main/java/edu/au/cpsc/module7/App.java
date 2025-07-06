@@ -28,7 +28,7 @@ public class App extends Application {
             Thread.setDefaultUncaughtExceptionHandler(this::handleUncaughtException);
 
             // Load FXML
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/yourname/alwaysdns/fxml/MainWindow.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/edu/au/cpsc/module7/styles/fxml/MainWindow.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 1000, 750);
 
             // Apply CSS theme
@@ -53,7 +53,7 @@ public class App extends Application {
 
     private void loadStylesheet(Scene scene) {
         try {
-            URL cssUrl = getClass().getResource("/com/yourname/alwaysdns/styles/terminal.css");
+            URL cssUrl = getClass().getResource("/edu/au/cpsc/module7/styles/terminal.css");
             if (cssUrl != null) {
                 scene.getStylesheets().add(cssUrl.toExternalForm());
                 LOGGER.info("Stylesheet loaded successfully");
@@ -73,7 +73,7 @@ public class App extends Application {
 
         // Add application icon if available
         try {
-            URL iconUrl = getClass().getResource("/com/yourname/alwaysdns/icons/app-icon.png");
+            URL iconUrl = getClass().getResource("/edu/au/cpsc/module7/icons/app-icon.png");
             if (iconUrl != null) {
                 stage.getIcons().add(new Image(iconUrl.toExternalForm()));
             }
@@ -116,7 +116,8 @@ public class App extends Application {
 
     public static void main(String[] args) {
         // Set system properties for better JavaFX experience
-        System.setProperty("javafx.preloader", "com.yourname.alwaysdns.Preloader");
+        // Preloader disabled (class not present)
+        // System.setProperty("javafx.preloader", "edu.au.cpsc.module7.Preloader");
         System.setProperty("prism.lcdtext", "false");
         System.setProperty("prism.text", "t2k");
 

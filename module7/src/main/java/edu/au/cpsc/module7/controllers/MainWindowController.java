@@ -211,11 +211,15 @@ public class MainWindowController implements Initializable {
             }
         });
 
-        // F5 to refresh/run queries
-        domainTextField.getScene().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (event.getCode() == KeyCode.F5) {
-                handleRunQueries();
-                event.consume();
+        // F5 to refresh/run queries - add when scene becomes available
+        domainTextField.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                newScene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+                    if (event.getCode() == KeyCode.F5) {
+                        handleRunQueries();
+                        event.consume();
+                    }
+                });
             }
         });
     }
@@ -297,7 +301,9 @@ public class MainWindowController implements Initializable {
         return new Task<List<QueryResult>>() {
             @Override
             protected List<QueryResult> call() throws Exception {
-                updateMessage("Initializing DNS queries for " + domain + "...\n");
+                StringBuilder msg = new StringBuilder();
+                msg.append("Initializing DNS queries for ").append(domain).append("...\n");
+                updateMessage(msg.toString());
                 updateProgress(0, queryTypes.size());
 
                 List<QueryResult> results = new ArrayList<>();
@@ -308,25 +314,29 @@ public class MainWindowController implements Initializable {
                         break;
                     }
 
-                    updateMessage(getMessage() + "\n--- Running " + queryType.name().toLowerCase() + " query ---\n");
+                    msg.append("\n--- Running ").append(queryType.name().toLowerCase()).append(" query ---\n");
+                    updateMessage(msg.toString());
 
                     try {
                         QueryResult result = queryService.executeQuery(domain, queryType);
                         results.add(result);
 
-                        // Update progress and message
-                        updateMessage(getMessage() + result.getOutput() + "\n");
+                        msg.append(result.getOutput()).append("\n");
+                        updateMessage(msg.toString());
+
                         updateProgress(++completed, queryTypes.size());
 
                     } catch (Exception e) {
                         String errorMsg = "Error running " + queryType.name().toLowerCase() + " query: " + e.getMessage();
-                        updateMessage(getMessage() + errorMsg + "\n");
+                        msg.append(errorMsg).append("\n");
+                        updateMessage(msg.toString());
                         LOGGER.log(Level.WARNING, errorMsg, e);
                     }
                 }
 
                 if (!isCancelled()) {
-                    updateMessage(getMessage() + "\n=== Query execution completed ===\n");
+                    msg.append("\n=== Query execution completed ===\n");
+                    updateMessage(msg.toString());
                     updateProgress(queryTypes.size(), queryTypes.size());
                 }
 
@@ -364,6 +374,7 @@ public class MainWindowController implements Initializable {
             currentResults.setLength(0);
             currentResults.append(resultsTextArea.getText());
             saveButton.setDisable(currentResults.length() == 0);
+            statusLabel.textProperty().unbind();
             statusLabel.setText("Queries completed successfully");
             LOGGER.info("DNS queries completed successfully");
         });
@@ -372,6 +383,7 @@ public class MainWindowController implements Initializable {
             updateUIState(false);
             Throwable exception = task.getException();
             String errorMsg = "Query execution failed: " + (exception != null ? exception.getMessage() : "Unknown error");
+            statusLabel.textProperty().unbind();
             statusLabel.setText("Query failed");
             showErrorAlert("Query Failed", errorMsg, null);
             LOGGER.log(Level.SEVERE, errorMsg, exception);
@@ -379,6 +391,7 @@ public class MainWindowController implements Initializable {
 
         task.setOnCancelled(e -> {
             updateUIState(false);
+            statusLabel.textProperty().unbind();
             statusLabel.setText("Queries cancelled");
             LOGGER.info("DNS queries cancelled by user");
         });
@@ -425,7 +438,9 @@ public class MainWindowController implements Initializable {
     }
 
     private void updateUIState(boolean running) {
-        progressBar.setVisible(running);
+        if (!progressBar.visibleProperty().isBound()) {
+            progressBar.setVisible(running);
+        }
         domainTextField.setDisable(running);
         digCheck.setDisable(running);
         nslookupCheck.setDisable(running);
@@ -484,7 +499,7 @@ public class MainWindowController implements Initializable {
     @FXML
     private void handleShowSettings() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/yourname/alwaysdns/fxml/SettingsDialog.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/edu/au/cpsc/module7/styles/fxml/SettingsDialog.fxml"));
             Stage dialogStage = new Stage();
             dialogStage.setTitle("Settings - AlwaysDNS");
             dialogStage.initModality(Modality.APPLICATION_MODAL);
