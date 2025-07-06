@@ -39,7 +39,7 @@ I often bounce between command-line utilities (dig, nslookup, whois, host) when 
 ```
 
 ## Screenshot
-![Main Window](docs/main-window.png)  
+![Main Window](main-window.png)  
 *Running dig/nslookup/whois in parallel*
 
 ## Control & UI Checklist
