@@ -39,12 +39,9 @@ I often bounce between command-line utilities (dig, nslookup, whois, host) when 
 ```
 Java 17+ and Maven Wrapper are included; no manual setup needed.
 
-## Screenshots
+## Screenshot
 ![Main Window](docs/main-window.png)  
 *Running dig/nslookup/whois in parallel*
-
-![Settings Dialog](docs/settings-dialog.png)  
-*Preferences with dark theme*
 
 ## Control & UI Checklist
 | UI element | Type |
