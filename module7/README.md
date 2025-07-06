@@ -38,6 +38,10 @@ I often bounce between command-line utilities (dig, nslookup, whois, host) when 
 ./target/app/bin/app   # run the image
 ```
 
+## Screenshot
+![Main Window](docs/main-window.png)  
+*Running dig/nslookup/whois in parallel*
+
 ## Control & UI Checklist
 | UI element | Type |
 |------------|------|
