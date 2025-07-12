@@ -85,7 +85,7 @@ public class SettingsDialogController implements Initializable {
     private void loadCurrentSettings() {
         if (settingsService == null) {
             try {
-                settingsService = new edu.au.cpsc.module7.services.SettingsService();
+                settingsService = SettingsService.getInstance();
             } catch (Exception ignored) {
                 return; // Cannot load settings
             }
@@ -160,7 +160,7 @@ public class SettingsDialogController implements Initializable {
     private void saveSettings() {
         if (settingsService == null) {
             try {
-                settingsService = new edu.au.cpsc.module7.services.SettingsService();
+                settingsService = SettingsService.getInstance();
             } catch (Exception e) {
                 showErrorAlert("Settings Error", "Settings service not available", null);
                 return;

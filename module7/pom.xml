@@ -26,7 +26,58 @@
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
+        <!-- Add JavaFX WebView for network visualization -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-web</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <!-- Jackson JSON processing -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.15.2</version>
+        </dependency>
+        
+        <!-- Apache Commons for utilities -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.13.0</version>
+        </dependency>
 
+        <!-- PCAP4J for cross-platform packet capture -->
+        <dependency>
+            <groupId>org.pcap4j</groupId>
+            <artifactId>pcap4j-core</artifactId>
+            <version>1.8.2</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.pcap4j</groupId>
+            <artifactId>pcap4j-packetfactory-static</artifactId>
+            <version>1.8.2</version>
+        </dependency>
+        
+        <!-- Netty for network operations -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.100.Final</version>
+        </dependency>
+        
+        <!-- SLF4J for logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.7</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.4.8</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -60,7 +111,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>edu.au.cpsc.module7/edu.au.cpsc.module7.App</mainClass>
+                            <mainClass>edu.au.cpsc.module7.App</mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
                             <jlinkImageName>app</jlinkImageName>
@@ -71,6 +122,43 @@
                                 --add-opens java.base/java.lang=ALL-UNNAMED
                                 -Dglass.disableMacOSSpacing=true
                             </jvmArgs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <mainClass>edu.au.cpsc.module7.App</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>run-server</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>edu.au.cpsc.module7.networkprobe.ProbingYourNetworkServer</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>run-client</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>edu.au.cpsc.module7.networkprobe.ProbingYourNetworkClient</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>run-public-probe</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>edu.au.cpsc.module7.networkprobe.PublicServerProbe</mainClass>
                         </configuration>
                     </execution>
                 </executions>

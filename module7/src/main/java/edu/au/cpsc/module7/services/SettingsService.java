@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 
 /**
  * Service for managing application settings and preferences
@@ -16,26 +17,42 @@ public class SettingsService {
     private static final String SETTINGS_DIR = ".alwaysdns";
     private static final String SETTINGS_FILE = "settings.properties";
     private static final String HISTORY_FILE = "domain_history.txt";
+    private static final String PREF_NODE = "edu/au/cpsc/module7";
+    private static final String LAST_QUERIES_KEY = "lastQueries";
 
+    private static SettingsService instance;
     private final Path settingsPath;
     private final Path historyPath;
     private final Properties settings;
+    private final Preferences prefs;
 
-    public SettingsService() throws IOException {
+    private SettingsService() {
         // Initialize settings directory
         Path homeDir = Paths.get(System.getProperty("user.home"));
         Path settingsDir = homeDir.resolve(SETTINGS_DIR);
 
         if (!Files.exists(settingsDir)) {
-            Files.createDirectories(settingsDir);
+            try {
+                Files.createDirectories(settingsDir);
+            } catch (IOException e) {
+                LOGGER.log(Level.WARNING, "Failed to create settings directory", e);
+            }
         }
 
         this.settingsPath = settingsDir.resolve(SETTINGS_FILE);
         this.historyPath = settingsDir.resolve(HISTORY_FILE);
         this.settings = new Properties();
+        this.prefs = Preferences.userRoot().node(PREF_NODE);
 
         loadSettings();
         setDefaultSettings();
+    }
+
+    public static synchronized SettingsService getInstance() {
+        if (instance == null) {
+            instance = new SettingsService();
+        }
+        return instance;
     }
 
     private void loadSettings() {
@@ -182,5 +199,23 @@ public class SettingsService {
         } catch (NumberFormatException e) {
             return 12; // default
         }
+    }
+
+    public void saveLastQueries(List<String> queries) {
+        try {
+            String serializedQueries = String.join(",", queries);
+            prefs.put(LAST_QUERIES_KEY, serializedQueries);
+            LOGGER.info("Last queries saved to preferences");
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Failed to save last queries to preferences", e);
+        }
+    }
+
+    public List<String> getLastQueries() {
+        String serializedQueries = prefs.get(LAST_QUERIES_KEY, "");
+        if (serializedQueries.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return Arrays.asList(serializedQueries.split(","));
     }
 }

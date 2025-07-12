@@ -2,6 +2,9 @@
 package edu.au.cpsc.module7.models;
 
 import java.time.LocalDateTime;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Represents the result of a DNS query execution
@@ -14,10 +17,20 @@ public class QueryResult {
     private boolean success;
     private int exitCode;
     private long executionTime;
-    private LocalDateTime timestamp;
+    private StringProperty timestamp;
+    private StringProperty command;
+    private StringProperty result;
 
     public QueryResult() {
-        this.timestamp = LocalDateTime.now();
+        this(null, null);
+    }
+
+    public QueryResult(String command, String result) {
+        this.timestamp = new SimpleStringProperty(
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        );
+        this.command = new SimpleStringProperty(command);
+        this.result = new SimpleStringProperty(result);
     }
 
     // Getters and setters
@@ -77,12 +90,28 @@ public class QueryResult {
         this.executionTime = executionTime;
     }
 
-    public LocalDateTime getTimestamp() {
-        return timestamp;
+    public String getTimestamp() {
+        return timestamp.get();
     }
 
     public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
+        this.timestamp.set(timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+    }
+
+    public StringProperty getCommand() {
+        return command;
+    }
+
+    public void setCommand(String command) {
+        this.command.set(command);
+    }
+
+    public StringProperty getResult() {
+        return result;
+    }
+
+    public void setResult(String result) {
+        this.result.set(result);
     }
 
     @Override

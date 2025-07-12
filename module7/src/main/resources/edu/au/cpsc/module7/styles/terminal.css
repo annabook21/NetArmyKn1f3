@@ -373,3 +373,147 @@
 .check-box:focused {
     -fx-effect: dropshadow(three-pass-box, #007acc, 5, 0, 0, 0);
 }
+
+/* Packet Analyzer specific styling */
+.packet-table {
+    -fx-background-color: #1e1e1e;
+    -fx-border-color: #3e3e42;
+    -fx-border-width: 1;
+}
+
+.packet-table .table-row-cell {
+    -fx-background-color: #1e1e1e;
+    -fx-text-fill: #d4d4d4;
+    -fx-border-color: transparent;
+}
+
+.packet-table .table-row-cell:selected {
+    -fx-background-color: #094771;
+    -fx-text-fill: white;
+}
+
+.packet-table .table-row-cell:hover {
+    -fx-background-color: #2d2d30;
+}
+
+/* Protocol-specific row coloring */
+.tcp-row {
+    -fx-background-color: #1a3d1a;
+}
+
+.tcp-row:selected {
+    -fx-background-color: #2d5a2d;
+}
+
+.udp-row {
+    -fx-background-color: #1a1a3d;
+}
+
+.udp-row:selected {
+    -fx-background-color: #2d2d5a;
+}
+
+.http-row {
+    -fx-background-color: #3d1a1a;
+}
+
+.http-row:selected {
+    -fx-background-color: #5a2d2d;
+}
+
+.dns-row {
+    -fx-background-color: #3d1a3d;
+}
+
+.dns-row:selected {
+    -fx-background-color: #5a2d5a;
+}
+
+.arp-row {
+    -fx-background-color: #3d3d1a;
+}
+
+.arp-row:selected {
+    -fx-background-color: #5a5a2d;
+}
+
+/* Tab pane styling */
+.tab-pane {
+    -fx-background-color: #1e1e1e;
+}
+
+.tab-pane .tab-header-area {
+    -fx-background-color: #252526;
+    -fx-border-color: #3e3e42;
+    -fx-border-width: 0 0 1 0;
+}
+
+.tab-pane .tab {
+    -fx-background-color: #2d2d30;
+    -fx-text-fill: #cccccc;
+    -fx-border-color: #3e3e42;
+    -fx-border-width: 0 1 0 0;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #1e1e1e;
+    -fx-text-fill: #569cd6;
+}
+
+.tab-pane .tab:hover {
+    -fx-background-color: #3e3e42;
+}
+
+/* Tree view styling */
+.tree-view {
+    -fx-background-color: #1e1e1e;
+    -fx-border-color: #3e3e42;
+    -fx-border-width: 1;
+}
+
+.tree-view .tree-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #d4d4d4;
+}
+
+.tree-view .tree-cell:selected {
+    -fx-background-color: #094771;
+    -fx-text-fill: white;
+}
+
+.tree-view .tree-cell:hover {
+    -fx-background-color: #2d2d30;
+}
+
+/* WebView styling for charts */
+.web-view {
+    -fx-background-color: #1e1e1e;
+    -fx-border-color: #3e3e42;
+    -fx-border-width: 1;
+}
+
+/* Radio buttons */
+.radio-button {
+    -fx-text-fill: #cccccc;
+}
+
+.radio-button .radio {
+    -fx-background-color: #333333;
+    -fx-border-color: #555555;
+    -fx-border-width: 1;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+.radio-button:selected .radio {
+    -fx-background-color: #007acc;
+    -fx-border-color: #007acc;
+}
+
+.radio-button:selected .dot {
+    -fx-background-color: white;
+}
+
+.radio-button:hover .radio {
+    -fx-border-color: #007acc;
+}
