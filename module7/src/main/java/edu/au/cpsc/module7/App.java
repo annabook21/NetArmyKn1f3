@@ -1,8 +1,12 @@
 package edu.au.cpsc.module7;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import edu.au.cpsc.module7.di.AppModule;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
@@ -20,23 +24,26 @@ import java.util.logging.Logger;
 public class App extends Application {
     private static final Logger LOGGER = Logger.getLogger(App.class.getName());
 
+    private Injector injector;
+
+    @Override
+    public void init() {
+        injector = Guice.createInjector(new AppModule());
+    }
+
     @Override
     public void start(Stage primaryStage) {
         try {
             // Set up uncaught exception handler
             Thread.setDefaultUncaughtExceptionHandler(this::handleUncaughtException);
 
-            // Load FXML
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/edu/au/cpsc/module7/styles/fxml/MainWindow.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 1000, 750);
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/edu/au/cpsc/module7/styles/fxml/MainWindow.fxml"));
+            loader.setControllerFactory(injector::getInstance);
+            Parent root = loader.load();
 
-            // Apply CSS theme
+            Scene scene = new Scene(root, 1200, 800);
             loadStylesheet(scene);
-
-            // Configure stage
             configureStage(primaryStage, scene);
-
-            // Show the application
             primaryStage.show();
 
             LOGGER.info("NetArmyKn1f3 application started successfully");
@@ -52,13 +59,9 @@ public class App extends Application {
 
     private void loadStylesheet(Scene scene) {
         try {
-            URL cssUrl = getClass().getResource("/edu/au/cpsc/module7/styles/terminal.css");
-            if (cssUrl != null) {
-                scene.getStylesheets().add(cssUrl.toExternalForm());
-                LOGGER.info("Stylesheet loaded successfully");
-            } else {
-                LOGGER.warning("CSS stylesheet not found - using default styling");
-            }
+            String stylesheet = getClass().getResource("/edu/au/cpsc/module7/styles/nord-theme.css").toExternalForm();
+            scene.getStylesheets().add(stylesheet);
+            LOGGER.info("Stylesheet loaded successfully");
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to load stylesheet", e);
         }

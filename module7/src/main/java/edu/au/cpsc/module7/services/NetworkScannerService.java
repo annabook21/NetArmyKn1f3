@@ -13,13 +13,13 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
 import java.util.function.Consumer;
+import com.google.inject.Inject;
 
 /**
  * Service for network scanning operations including host discovery and port scanning
  */
 public class NetworkScannerService {
     private static final Logger logger = Logger.getLogger(NetworkScannerService.class.getName());
-    private static NetworkScannerService instance;
     
     // Service detection patterns
     private static final Map<Integer, String> COMMON_SERVICES = new HashMap<>();
@@ -47,18 +47,12 @@ public class NetworkScannerService {
     
     private ExecutorService executorService;
     private volatile boolean scanRunning = false;
-    private ARPScanner arpScanner;
+    private final ARPScanner arpScanner;
     
-    private NetworkScannerService() {
+    @Inject
+    public NetworkScannerService(ARPScanner arpScanner) {
         this.executorService = Executors.newCachedThreadPool();
-        this.arpScanner = ARPScanner.getInstance();
-    }
-    
-    public static NetworkScannerService getInstance() {
-        if (instance == null) {
-            instance = new NetworkScannerService();
-        }
-        return instance;
+        this.arpScanner = arpScanner;
     }
     
     /**

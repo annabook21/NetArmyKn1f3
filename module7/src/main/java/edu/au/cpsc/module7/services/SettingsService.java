@@ -1,5 +1,6 @@
 package edu.au.cpsc.module7.services;
 
+import com.google.inject.Inject;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,13 +21,13 @@ public class SettingsService {
     private static final String PREF_NODE = "edu/au/cpsc/module7";
     private static final String LAST_QUERIES_KEY = "lastQueries";
 
-    private static SettingsService instance;
     private final Path settingsPath;
     private final Path historyPath;
     private final Properties settings;
     private final Preferences prefs;
 
-    private SettingsService() {
+    @Inject
+    public SettingsService() {
         // Initialize settings directory
         Path homeDir = Paths.get(System.getProperty("user.home"));
         Path settingsDir = homeDir.resolve(SETTINGS_DIR);
@@ -46,13 +47,6 @@ public class SettingsService {
 
         loadSettings();
         setDefaultSettings();
-    }
-
-    public static synchronized SettingsService getInstance() {
-        if (instance == null) {
-            instance = new SettingsService();
-        }
-        return instance;
     }
 
     private void loadSettings() {

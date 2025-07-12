@@ -21,10 +21,14 @@ public class DNSQueryService extends Task<List<QueryResult>> {
         HOST
     }
 
-    private final String domain;
-    private final List<QueryType> queryTypes;
+    private String domain;
+    private List<QueryType> queryTypes;
 
-    public DNSQueryService(String domain, List<QueryType> queryTypes) {
+    // Default constructor for Guice
+    public DNSQueryService() {
+    }
+
+    public void configure(String domain, List<QueryType> queryTypes) {
         this.domain = domain;
         this.queryTypes = queryTypes;
     }

@@ -1,0 +1,117 @@
+/* Nord Theme for NetArmyKn1f3 - Inspired by https://www.nordtheme.com/ */
+
+/* Root styling */
+.root {
+    -fx-base: #2E3440; /* nord0 */
+    -fx-background: #2E3440; /* nord0 */
+    -fx-control-inner-background: #3B4252; /* nord1 */
+    -fx-font-family: "Inter", "system-ui", "sans-serif";
+    -fx-font-size: 13px;
+}
+
+/* --- Typography --- */
+.label {
+    -fx-text-fill: #D8DEE9; /* nord4 */
+}
+
+.section-header {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #88C0D0; /* nord8 */
+}
+
+/* --- Buttons --- */
+.button {
+    -fx-background-color: #4C566A; /* nord3 */
+    -fx-text-fill: #ECEFF4; /* nord6 */
+    -fx-font-weight: bold;
+    -fx-background-radius: 4;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #5E81AC; /* nord9 */
+}
+
+.button:pressed {
+    -fx-background-color: #81A1C1; /* nord10 */
+}
+
+.button:disabled {
+    -fx-opacity: 0.6;
+}
+
+/* Primary "call to action" button */
+.primary-button {
+    -fx-background-color: #5E81AC; /* nord9 */
+    -fx-text-fill: #ECEFF4; /* nord6 */
+}
+
+.primary-button:hover {
+    -fx-background-color: #81A1C1; /* nord10 */
+}
+
+/* --- Text Fields & Input --- */
+.text-field, .combo-box, .spinner {
+    -fx-background-color: #3B4252; /* nord1 */
+    -fx-text-fill: #D8DEE9; /* nord4 */
+    -fx-border-color: #4C566A; /* nord3 */
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.text-field:focused, .combo-box:focused, .spinner:focused {
+    -fx-border-color: #88C0D0; /* nord8 */
+    -fx-border-width: 2;
+}
+
+/* --- Tables --- */
+.table-view {
+    -fx-background-color: #3B4252; /* nord1 */
+    -fx-border-color: #4C566A; /* nord3 */
+    -fx-border-width: 1;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #2E3440; /* nord0 */
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #D8DEE9; /* nord4 */
+    -fx-font-weight: bold;
+}
+
+.table-view .table-cell {
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 8 12;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: #3B4252; /* nord1 */
+    -fx-text-fill: #D8DEE9; /* nord4 */
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: #434C5E; /* nord2 */
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #5E81AC; /* nord9 */
+    -fx-text-fill: #ECEFF4; /* nord6 */
+}
+
+/* --- Tabs --- */
+.tab-pane .tab-header-area {
+    -fx-background-color: #2E3440; /* nord0 */
+}
+
+.tab-pane .tab {
+    -fx-background-color: #434C5E; /* nord2 */
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #3B4252; /* nord1 */
+} 

@@ -1,5 +1,6 @@
 package edu.au.cpsc.module7.controllers;
 
+import com.google.inject.Inject;
 import edu.au.cpsc.module7.services.SettingsService;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -32,17 +33,18 @@ public class SettingsDialogController implements Initializable {
     @FXML private Button saveButton;
     @FXML private Button cancelButton;
 
-    private SettingsService settingsService;
+    private final SettingsService settingsService;
+
+    @Inject
+    public SettingsDialogController(SettingsService settingsService) {
+        this.settingsService = settingsService;
+    }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setupSpinners();
         setupComboBoxes();
         setupEventHandlers();
-    }
-
-    public void setSettingsService(SettingsService settingsService) {
-        this.settingsService = settingsService;
         loadCurrentSettings();
     }
 
@@ -84,11 +86,8 @@ public class SettingsDialogController implements Initializable {
 
     private void loadCurrentSettings() {
         if (settingsService == null) {
-            try {
-                settingsService = SettingsService.getInstance();
-            } catch (Exception ignored) {
-                return; // Cannot load settings
-            }
+            LOGGER.warning("SettingsService not injected.");
+            return;
         }
 
         try {
@@ -159,12 +158,8 @@ public class SettingsDialogController implements Initializable {
 
     private void saveSettings() {
         if (settingsService == null) {
-            try {
-                settingsService = SettingsService.getInstance();
-            } catch (Exception e) {
-                showErrorAlert("Settings Error", "Settings service not available", null);
-                return;
-            }
+            showErrorAlert("Settings Error", "Settings service not available", null);
+            return;
         }
 
         try {

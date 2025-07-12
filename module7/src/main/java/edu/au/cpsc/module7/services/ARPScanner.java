@@ -14,6 +14,8 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.inject.Inject;
+
 /**
  * Advanced ARP scanner for discovering devices on the local network
  * This provides much better device discovery than simple ping scanning
@@ -28,7 +30,6 @@ public class ARPScanner {
         public void info(String msg, Object... args) { System.out.println("INFO: " + msg); }
         public void warn(String msg, Object... args) { System.out.println("WARN: " + msg); }
     }
-    private static ARPScanner instance;
     
     // OUI (Organizationally Unique Identifier) database for vendor identification
     private static final Map<String, String> VENDOR_DATABASE = new HashMap<>();
@@ -1043,14 +1044,8 @@ public class ARPScanner {
         VENDOR_DATABASE.put("FC:C2:DE", "Samsung");
     }
     
-    private ARPScanner() {}
-    
-    public static ARPScanner getInstance() {
-        if (instance == null) {
-            instance = new ARPScanner();
-        }
-        return instance;
-    }
+    @Inject
+    public ARPScanner() {}
     
     /**
      * Performs comprehensive ARP-based device discovery on the local network

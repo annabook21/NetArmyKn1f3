@@ -26,11 +26,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ResourceBundle;
+import com.google.inject.Inject;
 
 /**
  * Controller for the Network Scanner interface - RESTORED working version
  */
-public class NetworkScannerController implements Initializable {
+public class NetworkScannerController {
     private static final Logger logger = Logger.getLogger(NetworkScannerController.class.getName());
     
     // Configuration Controls
@@ -76,19 +77,23 @@ public class NetworkScannerController implements Initializable {
     @FXML private CheckBox autoScrollCheck;
     
     // Services
-    private NetworkScannerService scannerService;
-    private NetworkVisualizationService visualizationService;
+    private final NetworkScannerService scannerService;
+    private final NetworkVisualizationService visualizationService;
     
     // Data
     private ObservableList<NetworkHost> scanResults;
     private Task<List<NetworkHost>> currentScanTask;
+
+    @Inject
+    public NetworkScannerController(NetworkScannerService scannerService, NetworkVisualizationService visualizationService) {
+        this.scannerService = scannerService;
+        this.visualizationService = visualizationService;
+    }
     
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    @FXML
+    public void initialize() {
         logger.info("NetworkScannerController initializing...");
         
-        scannerService = NetworkScannerService.getInstance();
-        visualizationService = NetworkVisualizationService.getInstance();
         scanResults = FXCollections.observableArrayList();
         
         setupUI();

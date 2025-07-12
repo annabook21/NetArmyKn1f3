@@ -1,5 +1,6 @@
 package edu.au.cpsc.module7.controllers;
 
+import com.google.inject.Inject;
 import edu.au.cpsc.module7.models.QueryResult;
 import edu.au.cpsc.module7.services.DNSQueryService;
 import edu.au.cpsc.module7.services.SettingsService;
@@ -49,9 +50,17 @@ public class MainWindowController {
     @FXML
     private TableView<QueryResult> resultsTable;
 
-    private DNSQueryService dnsQueryService;
-    private SettingsService settingsService;
+    private final DNSQueryService dnsQueryService;
+    private final SettingsService settingsService;
+    private final FXMLLoader fxmlLoader;
     private final ObservableList<QueryResult> queryResults = FXCollections.observableArrayList();
+
+    @Inject
+    public MainWindowController(DNSQueryService dnsQueryService, SettingsService settingsService, FXMLLoader fxmlLoader) {
+        this.dnsQueryService = dnsQueryService;
+        this.settingsService = settingsService;
+        this.fxmlLoader = fxmlLoader;
+    }
 
     public void initialize() {
         LOGGER.info("MainWindowController Initializing...");
@@ -60,7 +69,6 @@ public class MainWindowController {
             setupResultsTable();
         }
         updateStatus("Ready. Enter a domain to begin.", false);
-        settingsService = SettingsService.getInstance();
         loadSettings();
     }
 
@@ -106,7 +114,8 @@ public class MainWindowController {
         }
 
         progressBar.setVisible(true);
-        dnsQueryService = new DNSQueryService(domain, selectedQueries);
+        // Use the injected dnsQueryService
+        dnsQueryService.configure(domain, selectedQueries);
         dnsQueryService.setOnSucceeded(event -> {
             queryResults.addAll(dnsQueryService.getValue());
             progressBar.setVisible(false);
@@ -116,7 +125,8 @@ public class MainWindowController {
             progressBar.setVisible(false);
             updateStatus("Queries failed.", true);
         });
-
+        
+        // This should be moved to a concurrency service later
         new Thread(dnsQueryService).start();
     }
 
@@ -157,14 +167,13 @@ public class MainWindowController {
     @FXML
     private void handleSettings() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/edu/au/cpsc/module7/styles/fxml/SettingsDialog.fxml"));
-            Parent root = loader.load();
+            fxmlLoader.setLocation(getClass().getResource("/edu/au/cpsc/module7/styles/fxml/SettingsDialog.fxml"));
+            Parent root = fxmlLoader.load();
             Stage settingsStage = new Stage();
             settingsStage.initModality(Modality.APPLICATION_MODAL);
             settingsStage.setTitle("Settings");
             settingsStage.setScene(new Scene(root));
-            SettingsDialogController controller = loader.getController();
-            controller.setSettingsService(SettingsService.getInstance());
+            // The controller is already managed by Guice, so we don't need to get it here
             settingsStage.showAndWait();
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Failed to open settings dialog", e);
@@ -189,8 +198,9 @@ public class MainWindowController {
     @FXML
     private void handlePacketAnalyzer() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/edu/au/cpsc/module7/styles/fxml/PacketAnalyzer.fxml"));
-            Parent root = loader.load();
+            // Use the injected fxmlLoader
+            fxmlLoader.setLocation(getClass().getResource("/edu/au/cpsc/module7/styles/fxml/PacketAnalyzer.fxml"));
+            Parent root = fxmlLoader.load();
             Stage packetStage = new Stage();
             packetStage.setTitle("📡 Packet Analyzer (PCAP Tool)");
             packetStage.setScene(new Scene(root, 1200, 800));

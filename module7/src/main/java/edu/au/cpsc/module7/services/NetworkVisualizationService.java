@@ -4,6 +4,7 @@ import edu.au.cpsc.module7.models.NetworkHost;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.inject.Inject;
 
 import java.util.List;
 import java.util.Random;
@@ -12,20 +13,13 @@ import java.util.Random;
  * Service for generating network visualization data and HTML
  */
 public class NetworkVisualizationService {
-    private static NetworkVisualizationService instance;
     private final ObjectMapper objectMapper;
     private final Random random;
     
-    private NetworkVisualizationService() {
+    @Inject
+    public NetworkVisualizationService() {
         this.objectMapper = new ObjectMapper();
         this.random = new Random();
-    }
-    
-    public static NetworkVisualizationService getInstance() {
-        if (instance == null) {
-            instance = new NetworkVisualizationService();
-        }
-        return instance;
     }
     
     /**

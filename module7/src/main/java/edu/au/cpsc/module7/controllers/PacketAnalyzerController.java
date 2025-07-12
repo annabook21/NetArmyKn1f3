@@ -1,5 +1,6 @@
 package edu.au.cpsc.module7.controllers;
 
+import com.google.inject.Inject;
 import edu.au.cpsc.module7.models.CapturedPacket;
 import edu.au.cpsc.module7.services.TcpdumpPacketCaptureService;
 import javafx.application.Platform;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
 /**
  * Controller for the Packet Analyzer (Mini Wireshark) interface
  */
-public class PacketAnalyzerController implements Initializable {
+public class PacketAnalyzerController {
     private static final Logger logger = Logger.getLogger(PacketAnalyzerController.class.getName());
     
     // Capture Controls
@@ -94,19 +95,23 @@ public class PacketAnalyzerController implements Initializable {
     @FXML private Label exportStatusLabel;
     
     // Services and Data
-    private TcpdumpPacketCaptureService captureService;
+    private final TcpdumpPacketCaptureService captureService;
     private ObservableList<CapturedPacket> allPackets;
     private FilteredList<CapturedPacket> filteredPackets;
     private ObservableList<ProtocolStatistic> protocolStats;
     private ScheduledExecutorService updateScheduler;
     private LocalDateTime captureStartTime;
-    
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
+
+    @Inject
+    public PacketAnalyzerController(TcpdumpPacketCaptureService captureService) {
+        this.captureService = captureService;
+    }
+
+    @FXML
+    public void initialize() {
         logger.info("PacketAnalyzerController initializing...");
         
-        // Initialize services
-        captureService = new TcpdumpPacketCaptureService();
+        // Initialize collections
         allPackets = FXCollections.observableArrayList();
         filteredPackets = new FilteredList<>(allPackets);
         protocolStats = FXCollections.observableArrayList();
