@@ -1,7 +1,7 @@
 package edu.au.cpsc.module7.controllers;
 
 import edu.au.cpsc.module7.models.CapturedPacket;
-import edu.au.cpsc.module7.services.PacketCaptureService;
+import edu.au.cpsc.module7.services.TcpdumpPacketCaptureService;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -19,6 +19,7 @@ import java.util.logging.Level;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -93,7 +94,7 @@ public class PacketAnalyzerController implements Initializable {
     @FXML private Label exportStatusLabel;
     
     // Services and Data
-    private PacketCaptureService captureService;
+    private TcpdumpPacketCaptureService captureService;
     private ObservableList<CapturedPacket> allPackets;
     private FilteredList<CapturedPacket> filteredPackets;
     private ObservableList<ProtocolStatistic> protocolStats;
@@ -105,7 +106,7 @@ public class PacketAnalyzerController implements Initializable {
         logger.info("PacketAnalyzerController initializing...");
         
         // Initialize services
-        captureService = new PacketCaptureService();
+        captureService = new TcpdumpPacketCaptureService();
         allPackets = FXCollections.observableArrayList();
         filteredPackets = new FilteredList<>(allPackets);
         protocolStats = FXCollections.observableArrayList();
@@ -212,16 +213,22 @@ public class PacketAnalyzerController implements Initializable {
     }
     
     private void setupPacketListener() {
-        captureService.setPacketListener(packet -> {
-            Platform.runLater(() -> {
-                allPackets.add(packet);
-                
-                // Auto-scroll to bottom if table is near the end
-                if (packetTable.getItems().size() > 0) {
-                    int lastVisibleIndex = packetTable.getItems().size() - 1;
-                    packetTable.scrollTo(lastVisibleIndex);
+        // TcpdumpPacketCaptureService uses ObservableList directly
+        // Link the capture service's packet list to our allPackets list
+        captureService.getCapturedPackets().addListener((javafx.collections.ListChangeListener<CapturedPacket>) change -> {
+            while (change.next()) {
+                if (change.wasAdded()) {
+                    allPackets.addAll(change.getAddedSubList());
+                    
+                    // Auto-scroll to bottom if table is near the end
+                    Platform.runLater(() -> {
+                        if (packetTable.getItems().size() > 0) {
+                            int lastVisibleIndex = packetTable.getItems().size() - 1;
+                            packetTable.scrollTo(lastVisibleIndex);
+                        }
+                    });
                 }
-            });
+            }
         });
     }
     
@@ -355,8 +362,8 @@ public class PacketAnalyzerController implements Initializable {
         }
         
         Platform.runLater(() -> {
-            // Update packet counts
-            Map<String, Long> stats = captureService.getProtocolStatistics();
+            // Update packet counts - calculate from allPackets
+            Map<String, Long> stats = calculateProtocolStatistics();
             totalPacketsLabel.setText("Total: " + allPackets.size());
             tcpPacketsLabel.setText("TCP: " + stats.getOrDefault("TCP", 0L));
             udpPacketsLabel.setText("UDP: " + stats.getOrDefault("UDP", 0L));
@@ -513,6 +520,17 @@ public class PacketAnalyzerController implements Initializable {
             """;
     }
     
+    private Map<String, Long> calculateProtocolStatistics() {
+        Map<String, Long> stats = new HashMap<>();
+        
+        for (CapturedPacket packet : allPackets) {
+            String protocol = packet.getProtocol().toUpperCase();
+            stats.put(protocol, stats.getOrDefault(protocol, 0L) + 1);
+        }
+        
+        return stats;
+    }
+    
     private String formatBytes(long bytes) {
         if (bytes < 1024) return bytes + " B";
         if (bytes < 1024 * 1024) return String.format("%.1f KB", bytes / 1024.0);
@@ -558,12 +576,16 @@ public class PacketAnalyzerController implements Initializable {
         
         String filter = captureFilterField.getText().trim();
         
-        if (captureService.startCapture(selectedInterface, filter)) {
+        // Create temporary capture file
+        String captureFile = "/tmp/alwaysdns_capture_" + System.currentTimeMillis() + ".pcap";
+        
+        try {
+            captureService.startCapture(selectedInterface, filter, captureFile);
             captureStartTime = LocalDateTime.now();
             updateCaptureStatus("Capturing packets...", true);
             logger.info("Packet capture started on interface: " + selectedInterface);
-        } else {
-            showAlert("Capture Failed", "Failed to start packet capture. Check permissions and interface availability.");
+        } catch (Exception e) {
+            showAlert("Capture Failed", "Failed to start packet capture: " + e.getMessage());
         }
     }
     
@@ -627,7 +649,8 @@ public class PacketAnalyzerController implements Initializable {
     }
     
     private void refreshNetworkInterfaces() {
-        List<String> interfaces = captureService.getAvailableInterfaces();
+        String[] interfaceArray = captureService.getAvailableInterfaces();
+        List<String> interfaces = Arrays.asList(interfaceArray);
         interfaceCombo.getItems().clear();
         interfaceCombo.getItems().addAll(interfaces);
         
@@ -730,7 +753,7 @@ public class PacketAnalyzerController implements Initializable {
             updateScheduler.shutdown();
         }
         if (captureService != null) {
-            captureService.stopCapture();
+            captureService.shutdown();
         }
     }
     
