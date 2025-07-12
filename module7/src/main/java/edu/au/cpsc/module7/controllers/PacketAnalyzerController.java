@@ -577,7 +577,7 @@ public class PacketAnalyzerController implements Initializable {
         String filter = captureFilterField.getText().trim();
         
         // Create temporary capture file
-        String captureFile = "/tmp/alwaysdns_capture_" + System.currentTimeMillis() + ".pcap";
+        String captureFile = "/tmp/netarmykn1f3_capture_" + System.currentTimeMillis() + ".pcap";
         
         try {
             captureService.startCapture(selectedInterface, filter, captureFile);

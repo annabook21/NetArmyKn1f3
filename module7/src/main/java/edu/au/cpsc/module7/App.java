@@ -15,8 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * AlwaysDNS - A professional DNS query tool with JavaFX GUI
- * Production-ready implementation with proper error handling and modern design
+ * NetArmyKn1f3 - A comprehensive network analysis and monitoring tool with JavaFX GUI
  */
 public class App extends Application {
     private static final Logger LOGGER = Logger.getLogger(App.class.getName());
@@ -40,12 +39,12 @@ public class App extends Application {
             // Show the application
             primaryStage.show();
 
-            LOGGER.info("AlwaysDNS application started successfully");
+            LOGGER.info("NetArmyKn1f3 application started successfully");
 
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Failed to start application", e);
             showErrorAlert("Application Startup Error",
-                    "Failed to start AlwaysDNS application",
+                    "Failed to start NetArmyKn1f3 application",
                     e.getMessage());
             Platform.exit();
         }
@@ -66,7 +65,7 @@ public class App extends Application {
     }
 
     private void configureStage(Stage stage, Scene scene) {
-        stage.setTitle("AlwaysDNS - Professional DNS Query Tool");
+        stage.setTitle("NetArmyKn1f3 - Network Analysis & Monitoring Tool");
         stage.setScene(scene);
         stage.setMinWidth(800);
         stage.setMinHeight(600);
@@ -111,7 +110,7 @@ public class App extends Application {
 
     @Override
     public void stop() {
-        LOGGER.info("AlwaysDNS application stopped");
+        LOGGER.info("NetArmyKn1f3 application stopped");
     }
 
     public static void main(String[] args) {

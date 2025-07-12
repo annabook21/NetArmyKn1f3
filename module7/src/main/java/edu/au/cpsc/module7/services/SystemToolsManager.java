@@ -417,7 +417,7 @@ public class SystemToolsManager {
 
     private Path getPortableToolsDirectory() {
         Path homeDir = Paths.get(System.getProperty("user.home"));
-        return homeDir.resolve(".alwaysdns").resolve("tools");
+        return homeDir.resolve(".netarmykn1f3").resolve("tools");
     }
 
     // Helper methods for extraction

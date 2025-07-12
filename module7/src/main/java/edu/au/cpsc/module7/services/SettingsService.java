@@ -14,7 +14,7 @@ import java.util.prefs.Preferences;
  */
 public class SettingsService {
     private static final Logger LOGGER = Logger.getLogger(SettingsService.class.getName());
-    private static final String SETTINGS_DIR = ".alwaysdns";
+    private static final String SETTINGS_DIR = ".netarmykn1f3";
     private static final String SETTINGS_FILE = "settings.properties";
     private static final String HISTORY_FILE = "domain_history.txt";
     private static final String PREF_NODE = "edu/au/cpsc/module7";
@@ -79,7 +79,7 @@ public class SettingsService {
 
     public void saveSettings() throws IOException {
         try (OutputStream output = Files.newOutputStream(settingsPath)) {
-            settings.store(output, "AlwaysDNS Settings");
+            settings.store(output, "NetArmyKn1f3 Settings");
             LOGGER.info("Settings saved to: " + settingsPath);
         }
     }
