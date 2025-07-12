@@ -37,7 +37,6 @@ I often bounce between command-line utilities (dig, nslookup, whois, host) when 
 ./mvnw javafx:jlink
 ./target/app/bin/app   # run the image
 ```
-Java 17+ and Maven Wrapper are included; no manual setup needed.
 
 ## Screenshot
 ![Main Window](docs/main-window.png)  
