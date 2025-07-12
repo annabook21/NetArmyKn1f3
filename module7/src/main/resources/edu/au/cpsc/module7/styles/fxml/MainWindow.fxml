@@ -23,6 +23,8 @@
                         <MenuItem text="Exit" onAction="#handleExit" accelerator="Shortcut+Q" />
                     </Menu>
                     <Menu text="Tools">
+                        <MenuItem text="Packet Analyzer (PCAP)" onAction="#handlePacketAnalyzer" accelerator="Shortcut+P" />
+                        <SeparatorMenuItem />
                         <MenuItem text="Manage Tools" onAction="#handleManageTools" accelerator="Shortcut+T" />
                     </Menu>
                     <Menu text="Help">
@@ -42,7 +44,7 @@
                     <Tab text="Network Scanner">
                         <fx:include source="NetworkScanner.fxml"/>
                     </Tab>
-                    <!-- Packet Analyzer temporarily disabled due to FXML issues -->
+                    <!-- Packet Analyzer temporarily disabled due to FXML resource bundle issue -->
                     <!-- <Tab text="📡 Packet Analyzer">
                         <fx:include source="PacketAnalyzer.fxml"/>
                     </Tab> -->

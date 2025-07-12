@@ -14,7 +14,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
 import java.util.logging.Logger;
-import java.util.logging.Level;
 
 import java.io.File;
 import java.io.FileWriter;

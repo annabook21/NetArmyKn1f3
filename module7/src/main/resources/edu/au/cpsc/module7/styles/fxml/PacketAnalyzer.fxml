@@ -155,7 +155,7 @@
                                 <TableColumn fx:id="statProtocolColumn" text="Protocol" prefWidth="100"/>
                                 <TableColumn fx:id="statPacketsColumn" text="Packets" prefWidth="100"/>
                                 <TableColumn fx:id="statBytesColumn" text="Bytes" prefWidth="100"/>
-                                <TableColumn fx:id="statPercentColumn" text="%" prefWidth="80"/>
+                                <TableColumn fx:id="statPercentColumn" text="Percent" prefWidth="80"/>
                                 <TableColumn fx:id="statAvgSizeColumn" text="Avg Size" prefWidth="100"/>
                             </columns>
                         </TableView>

@@ -186,6 +186,22 @@ public class MainWindowController {
         showAlert("Manage Tools", "Tool management functionality not yet implemented.");
     }
 
+    @FXML
+    private void handlePacketAnalyzer() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/edu/au/cpsc/module7/styles/fxml/PacketAnalyzer.fxml"));
+            Parent root = loader.load();
+            Stage packetStage = new Stage();
+            packetStage.setTitle("📡 Packet Analyzer (PCAP Tool)");
+            packetStage.setScene(new Scene(root, 1200, 800));
+            packetStage.show();
+            updateStatus("Packet Analyzer opened in new window", false);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Failed to open packet analyzer", e);
+            updateStatus("Failed to open Packet Analyzer: " + e.getMessage(), true);
+        }
+    }
+
     private void updateStatus(String message, boolean isError) {
         Platform.runLater(() -> {
             if (statusLabel != null) {
