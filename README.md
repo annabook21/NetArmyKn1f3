@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="https://raw.githubusercontent.com/annabook21/NetArmyKn1f3/main/net_icon.png" alt="NetArmyKn1f3 Logo" width="150"/>
+    <img src="net_icon.png" alt="NetArmyKn1f3 Logo" width="150"/>
 </div>
 
 # NetArmyKn1f3: A Network Analysis & Visualization Suite
