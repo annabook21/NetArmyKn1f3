@@ -68,7 +68,8 @@
             <HBox spacing="15">
                 <CheckBox fx:id="runTcpCheckBox" text="TCP Test"/>
                 <CheckBox fx:id="runUdpCheckBox" text="UDP Test"/>
-                <CheckBox fx:id="runTracerouteCheckBox" text="Traceroute" selected="true"/>
+                <Label text="Path Analysis:"/>
+                <ChoiceBox fx:id="pathAnalysisChoiceBox" />
             </HBox>
         </VBox>
     </TitledPane>

@@ -1,10 +1,15 @@
 package edu.au.cpsc.module7.controllers;
 
+import com.google.inject.Inject;
+import edu.au.cpsc.module7.models.QueryResult;
 import edu.au.cpsc.module7.networkprobe.ProbingYourNetworkClient;
 import edu.au.cpsc.module7.networkprobe.PublicServerProbe;
+import edu.au.cpsc.module7.services.SettingsService;
+import edu.au.cpsc.module7.services.SystemToolsManager;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -12,214 +17,216 @@ import javafx.stage.FileChooser;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ResourceBundle;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
-public class NetworkProbeController {
+public class NetworkProbeController implements Initializable {
+    private static final Logger LOGGER = Logger.getLogger(NetworkProbeController.class.getName());
 
-    @FXML
-    private TextField serverAddressField;
-    @FXML
-    private TextField udpPortField;
-    @FXML
-    private TextField tcpPortField;
-    @FXML
-    private TextField durationField;
-    @FXML
-    private CheckBox runTcpCheckBox;
-    @FXML
-    private CheckBox runUdpCheckBox;
-    @FXML
-    private CheckBox runTracerouteCheckBox;
-    @FXML
-    private Button runProbeButton;
-    @FXML
-    private Button stopProbeButton;
-    @FXML
-    private TextArea resultsArea;
-    @FXML
-    private RadioButton customServerRadio;
-    @FXML
-    private RadioButton publicServerRadio;
-    @FXML
-    private ToggleGroup probeTypeGroup;
-    @FXML
-    private Label modeDescriptionLabel;
-    @FXML
-    private TitledPane advancedOptionsPane;
-    @FXML
-    private VBox localServerPanel;
-    @FXML
-    private Label serverStatusLabel;
-    @FXML
-    private Button startServerButton;
-    @FXML
-    private Button stopServerButton;
-    @FXML
-    private Button clearResultsButton;
-    @FXML
-    private Button saveResultsButton;
+    @FXML private TextField serverAddressField;
+    @FXML private RadioButton publicServerRadio;
+    @FXML private RadioButton customServerRadio;
+    @FXML private Label modeDescriptionLabel;
+    @FXML private TitledPane advancedOptionsPane;
+    @FXML private TextField udpPortField;
+    @FXML private TextField tcpPortField;
+    @FXML private TextField durationField;
+    @FXML private CheckBox runTcpCheckBox;
+    @FXML private CheckBox runUdpCheckBox;
+    @FXML private ChoiceBox<String> pathAnalysisChoiceBox;
+    @FXML private VBox localServerPanel;
+    @FXML private Label serverStatusLabel;
+    @FXML private Button startServerButton;
+    @FXML private Button stopServerButton;
+    @FXML private Button runProbeButton;
+    @FXML private Button stopProbeButton;
+    @FXML private TextArea resultsArea;
+    @FXML private Button clearResultsButton;
+    @FXML private Button saveResultsButton;
 
+    private final SettingsService settingsService;
+    private final SystemToolsManager systemToolsManager;
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private Task<Void> currentProbeTask;
     private Process localServerProcess;
 
-    @FXML
-    public void initialize() {
-        // Set up radio button group
-        probeTypeGroup = new ToggleGroup();
-        customServerRadio.setToggleGroup(probeTypeGroup);
-        publicServerRadio.setToggleGroup(probeTypeGroup);
-        
-        // Set default selection to public server (recommended)
+    @Inject
+    public NetworkProbeController(SettingsService settingsService, SystemToolsManager systemToolsManager) {
+        this.settingsService = settingsService;
+        this.systemToolsManager = systemToolsManager;
+    }
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        ToggleGroup group = new ToggleGroup();
+        publicServerRadio.setToggleGroup(group);
+        customServerRadio.setToggleGroup(group);
         publicServerRadio.setSelected(true);
-        
-        // Add listeners to update UI based on probe type
-        probeTypeGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
-            updateProbeTypeUI();
+
+        // Initialize ChoiceBox for path analysis
+        pathAnalysisChoiceBox.getItems().addAll("None", "Traceroute", "MTR");
+        pathAnalysisChoiceBox.setValue("Traceroute");
+
+        // Add listener to update UI based on selected probe type
+        group.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                updateProbeTypeUI();
+            }
         });
-        
-        // Initialize UI
         updateProbeTypeUI();
-        
+
         // Add welcome message
         resultsArea.setText("🚀 Network Probe Ready!\n\n" +
-                           "Quick Start:\n" +
-                           "1. Enter a target (domain or IP)\n" +
-                           "2. Click 'Run Network Probe'\n" +
-                           "3. View comprehensive analysis results\n\n" +
-                           "💡 Tip: Use the Quick buttons for common targets\n" +
-                           "🌐 Public Server mode works with any website or server\n" +
-                           "🔧 Custom Server mode requires local server setup\n\n" +
-                           "Ready to probe networks! 🔍\n");
+                "Quick Start:\n" +
+                "1. Enter a target (domain or IP)\n" +
+                "2. Select path analysis tool (Traceroute/MTR)\n" +
+                "3. Click 'Run Network Probe'\n" +
+                "4. View comprehensive analysis results\n\n" +
+                "💡 Tip: Use the Quick buttons for common targets\n" +
+                "🌐 Public Server mode works with any website or server\n" +
+                "🔧 Custom Server mode requires local server setup\n\n" +
+                "Ready to probe networks! 🔍\n");
     }
-    
+
     private void updateProbeTypeUI() {
-        boolean isCustomServer = customServerRadio.isSelected();
-        boolean isPublicServer = publicServerRadio.isSelected();
+        boolean isCustom = customServerRadio.isSelected();
         
-        // Update description based on mode
-        if (isPublicServer) {
-            modeDescriptionLabel.setText("🌐 Tests any public server using standard protocols (HTTP, DNS, SSH, etc.). No setup required!");
-            modeDescriptionLabel.setStyle("-fx-text-fill: #1976d2; -fx-font-size: 12px;");
-        } else {
+        // Advanced options are for public mode
+        advancedOptionsPane.setDisable(isCustom);
+        
+        // Local server panel is for custom mode
+        localServerPanel.setDisable(!isCustom);
+        
+        // Update description
+        if (isCustom) {
             modeDescriptionLabel.setText("🔧 Tests custom echo services. Requires ProbingYourNetworkServer running on target host.");
             modeDescriptionLabel.setStyle("-fx-text-fill: #f57c00; -fx-font-size: 12px;");
-        }
-        
-        // Show/hide advanced options and local server panel based on mode
-        advancedOptionsPane.setVisible(isCustomServer);
-        advancedOptionsPane.setManaged(isCustomServer);
-        localServerPanel.setVisible(isCustomServer);
-        localServerPanel.setManaged(isCustomServer);
-        
-        // Enable/disable fields based on probe type
-        udpPortField.setDisable(!isCustomServer);
-        tcpPortField.setDisable(!isCustomServer);
-        durationField.setDisable(!isCustomServer);
-        runTcpCheckBox.setDisable(!isCustomServer);
-        runUdpCheckBox.setDisable(!isCustomServer);
-        
-        if (isPublicServer) {
-            // For public server probing, always enable traceroute
-            runTracerouteCheckBox.setSelected(true);
+        } else {
+            modeDescriptionLabel.setText("🌐 Tests any public server using standard protocols (HTTP, DNS, SSH, etc.). No setup required!");
+            modeDescriptionLabel.setStyle("-fx-text-fill: #1976d2; -fx-font-size: 12px;");
         }
     }
 
     @FXML
     private void handleRunProbe() {
-        resultsArea.clear();
-        runProbeButton.setDisable(true);
-        stopProbeButton.setDisable(false);
-        
-        String serverAddress = serverAddressField.getText().trim();
-        boolean isPublicServer = publicServerRadio.isSelected();
-        
-        if (serverAddress.isEmpty()) {
-            resultsArea.appendText("❌ Please enter a server address\n");
-            runProbeButton.setDisable(false);
-            stopProbeButton.setDisable(true);
+        String target = serverAddressField.getText();
+        if (target == null || target.trim().isEmpty()) {
+            resultsArea.setText("Error: Target address cannot be empty.");
             return;
         }
-        
-        // Add timestamp
-        resultsArea.appendText("🕐 " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "\n");
-        resultsArea.appendText("🎯 Target: " + serverAddress + "\n");
-        resultsArea.appendText("🔧 Mode: " + (isPublicServer ? "Public Server" : "Custom Server") + "\n\n");
-        
+
+        runProbeButton.setDisable(true);
+        stopProbeButton.setDisable(false);
+        resultsArea.clear();
+        appendResults("Starting probe for " + target + "...\n");
+
+        boolean isPublicServer = publicServerRadio.isSelected();
+
         if (isPublicServer) {
-            runPublicServerProbe(serverAddress);
+            runPublicServerProbe(target);
         } else {
-            runCustomServerProbe(serverAddress);
+            runCustomServerProbe(target);
         }
     }
-    
-    private void runPublicServerProbe(String serverAddress) {
+
+    private void runPublicServerProbe(String target) {
         currentProbeTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                updateMessage("🔍 Running public server probe for: " + serverAddress + "\n");
-                
+                // Path Analysis
+                String analysisType = pathAnalysisChoiceBox.getValue();
+                if (!"None".equals(analysisType)) {
+                    updateMessage("Running " + analysisType + "...");
+                    Platform.runLater(() -> appendResults("--- Running " + analysisType + " ---\n"));
+
+                    QueryResult result;
+                    if ("Traceroute".equals(analysisType)) {
+                        result = systemToolsManager.executeTraceroute(target);
+                    } else { // MTR
+                        result = systemToolsManager.executeMtr(target);
+                    }
+
+                    if (result.isSuccess()) {
+                        Platform.runLater(() -> appendResults(result.getOutput() + "\n"));
+                    } else {
+                        Platform.runLater(() -> appendResults("Error: " + result.getErrorOutput() + "\n"));
+                    }
+                }
+
+                // Run PublicServerProbe
                 try {
-                    // Use Maven to run the PublicServerProbe to ensure proper classpath
                     ProcessBuilder pb = new ProcessBuilder();
                     pb.command("mvn", "exec:java@run-public-probe", 
-                              "-Dexec.args=--host " + serverAddress + " -v");
+                              "-Dexec.args=--host " + target + " -v");
                     pb.directory(new File(System.getProperty("user.dir")));
                     pb.redirectErrorStream(true);
                     
                     Process process = pb.start();
                     
-                    // Read the process output in real-time
                     try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()))) {
                         String line;
                         while ((line = reader.readLine()) != null && !isCancelled()) {
                             final String outputLine = line;
-                            Platform.runLater(() -> resultsArea.appendText(outputLine + "\n"));
+                            Platform.runLater(() -> appendResults(outputLine + "\n"));
                         }
                     }
                     
-                    // If cancelled, destroy the process
                     if (isCancelled()) {
                         process.destroyForcibly();
-                        Platform.runLater(() -> resultsArea.appendText("\n⏹️ Probe cancelled by user\n"));
+                        Platform.runLater(() -> appendResults("\n⏹️ Probe cancelled by user\n"));
                         return null;
                     }
                     
-                    // Wait for process completion
                     int exitCode = process.waitFor();
                     
                     Platform.runLater(() -> {
                         if (exitCode == 0) {
-                            resultsArea.appendText("\n✅ Public server probe completed successfully!\n");
-                            resultsArea.appendText("💡 Tip: Use 'Save' button to export these results\n");
+                            appendResults("\n✅ Public server probe completed successfully!\n");
                         } else {
-                            resultsArea.appendText("\n❌ Public server probe completed with errors (exit code: " + exitCode + ")\n");
+                            appendResults("\n❌ Public server probe completed with errors (exit code: " + exitCode + ")\n");
                         }
                     });
                     
                 } catch (Exception e) {
                     Platform.runLater(() -> {
-                        resultsArea.appendText("❌ Error running public server probe: " + e.getMessage() + "\n");
+                        appendResults("❌ Error running public server probe: " + e.getMessage() + "\n");
                     });
                 }
-                
+
+                updateMessage("Probe finished.");
                 return null;
             }
         };
-        
-        startProbeTask();
+
+        currentProbeTask.setOnSucceeded(e -> onProbeFinished());
+        currentProbeTask.setOnFailed(e -> {
+            appendResults("\nPROBE FAILED\n");
+            Throwable ex = e.getSource().getException();
+            if (ex != null) {
+                appendResults(ex.getMessage());
+            }
+            onProbeFinished();
+        });
+        currentProbeTask.setOnCancelled(e -> onProbeFinished());
+
+        executorService.submit(currentProbeTask);
     }
-    
+
     private void runCustomServerProbe(String serverAddress) {
         // Check if we're testing a host that likely won't have the services
         boolean isPublicDNS = serverAddress.equals("8.8.8.8") || serverAddress.equals("1.1.1.1") || 
                              serverAddress.equals("8.8.4.4") || serverAddress.equals("1.0.0.1");
         
         if (isPublicDNS && (runTcpCheckBox.isSelected() || runUdpCheckBox.isSelected())) {
-            resultsArea.appendText("⚠️ WARNING: Testing public DNS servers for custom ports will likely fail!\n");
-            resultsArea.appendText("💡 Consider switching to 'Public Server' mode for better results.\n\n");
+            appendResults("⚠️ WARNING: Testing public DNS servers for custom ports will likely fail!\n");
+            appendResults("💡 Consider switching to 'Public Server' mode for better results.\n\n");
         }
 
         currentProbeTask = new Task<>() {
@@ -228,7 +235,6 @@ public class NetworkProbeController {
                 List<String> args = buildArguments();
                 updateMessage("🔍 Running custom server test with args: " + String.join(" ", args) + "\n");
                 
-                // Create a separate process to run the client so we can terminate it
                 ProcessBuilder pb = new ProcessBuilder();
                 pb.command("mvn", "exec:java@run-client", "-Dexec.args=" + String.join(" ", args));
                 pb.redirectErrorStream(true);
@@ -236,42 +242,39 @@ public class NetworkProbeController {
                 try {
                     Process process = pb.start();
                     
-                    // Read the process output in real-time
                     try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()))) {
                         String line;
                         while ((line = reader.readLine()) != null && !isCancelled()) {
                             final String outputLine = line;
-                            Platform.runLater(() -> resultsArea.appendText(outputLine + "\n"));
+                            Platform.runLater(() -> appendResults(outputLine + "\n"));
                         }
                     }
                     
-                    // If cancelled, destroy the process
                     if (isCancelled()) {
                         process.destroyForcibly();
-                        Platform.runLater(() -> resultsArea.appendText("\n⏹️ Test cancelled by user\n"));
+                        Platform.runLater(() -> appendResults("\n⏹️ Test cancelled by user\n"));
                         return null;
                     }
                     
-                    // Wait for process completion
                     int exitCode = process.waitFor();
                     
                     Platform.runLater(() -> {
                         if (exitCode == 0) {
-                            resultsArea.appendText("\n✅ Custom server test completed successfully!\n");
+                            appendResults("\n✅ Custom server test completed successfully!\n");
                         } else {
-                            resultsArea.appendText("\n❌ Custom server test completed with errors (exit code: " + exitCode + ")\n");
+                            appendResults("\n❌ Custom server test completed with errors (exit code: " + exitCode + ")\n");
                             if (isPublicDNS) {
-                                resultsArea.appendText("💡 TIP: For public servers, try 'Public Server' mode instead.\n");
+                                appendResults("💡 TIP: For public servers, try 'Public Server' mode instead.\n");
                             } else {
-                                resultsArea.appendText("💡 TIP: Make sure the ProbingYourNetworkServer is running on the target host.\n");
-                                resultsArea.appendText("🚀 Use 'Start Local Server' for local testing.\n");
+                                appendResults("💡 TIP: Make sure the ProbingYourNetworkServer is running on the target host.\n");
+                                appendResults("🚀 Use 'Start Local Server' for local testing.\n");
                             }
                         }
                     });
                     
                 } catch (Exception e) {
                     Platform.runLater(() -> {
-                        resultsArea.appendText("❌ Error running custom server test: " + e.getMessage() + "\n");
+                        appendResults("❌ Error running custom server test: " + e.getMessage() + "\n");
                     });
                 }
                 
@@ -279,99 +282,74 @@ public class NetworkProbeController {
             }
         };
         
-        startProbeTask();
-    }
-    
-    private void startProbeTask() {
-        currentProbeTask.setOnSucceeded(e -> {
-            runProbeButton.setDisable(false);
-            stopProbeButton.setDisable(true);
-        });
-
+        currentProbeTask.setOnSucceeded(e -> onProbeFinished());
         currentProbeTask.setOnFailed(e -> {
-            runProbeButton.setDisable(false);
-            stopProbeButton.setDisable(true);
-            Throwable exception = currentProbeTask.getException();
-            resultsArea.appendText("❌ Test failed: " + exception.getMessage() + "\n");
+            appendResults("\nTEST FAILED\n");
+            Throwable ex = e.getSource().getException();
+            if (ex != null) {
+                appendResults(ex.getMessage());
+            }
+            onProbeFinished();
         });
+        currentProbeTask.setOnCancelled(e -> onProbeFinished());
 
-        currentProbeTask.setOnCancelled(e -> {
-            runProbeButton.setDisable(false);
-            stopProbeButton.setDisable(true);
-        });
-
-        // Run the task in a background thread
-        Thread probeThread = new Thread(currentProbeTask);
-        probeThread.setDaemon(true);
-        probeThread.start();
+        executorService.submit(currentProbeTask);
     }
 
     @FXML
     private void handleStopProbe() {
-        if (currentProbeTask != null && !currentProbeTask.isDone()) {
+        if (currentProbeTask != null && currentProbeTask.isRunning()) {
             currentProbeTask.cancel(true);
-            runProbeButton.setDisable(false);
-            stopProbeButton.setDisable(true);
-            resultsArea.appendText("\n⏹️ Test stopped by user.\n");
+            appendResults("\n--- Probe Cancelled by User ---\n");
         }
+        onProbeFinished();
+    }
+
+    private void onProbeFinished() {
+        runProbeButton.setDisable(false);
+        stopProbeButton.setDisable(true);
+    }
+
+    private void appendResults(String text) {
+        Platform.runLater(() -> resultsArea.appendText(text));
+    }
+
+    @FXML private void handleTestGoogleDNS() { 
+        publicServerRadio.setSelected(true);
+        updateProbeTypeUI();
+        serverAddressField.setText("8.8.8.8"); 
+        appendResults("🌐 Google DNS Test Configuration Applied\n");
     }
     
-    @FXML
-    private void handleTestLocalServer() {
-        // Switch to custom server mode
+    @FXML private void handleTestPublicWebsite() { 
+        publicServerRadio.setSelected(true);
+        updateProbeTypeUI();
+        serverAddressField.setText("github.com"); 
+        appendResults("😈 GitHub Test Configuration Applied\n");
+    }
+    
+    @FXML private void handleTestLocalServer() { 
         customServerRadio.setSelected(true);
         updateProbeTypeUI();
-        
-        // Set up for local server testing
         serverAddressField.setText("localhost");
         udpPortField.setText("5001");
         tcpPortField.setText("5002");
         durationField.setText("5");
         runTcpCheckBox.setSelected(true);
         runUdpCheckBox.setSelected(false);
-        runTracerouteCheckBox.setSelected(false);
-        
-        resultsArea.appendText("🏠 Local Server Test Configuration Applied\n");
-        resultsArea.appendText("💡 Make sure to start the local server first!\n\n");
+        appendResults("🏠 Local Server Test Configuration Applied\n");
     }
-    
-    @FXML
-    private void handleTestGoogleDNS() {
-        // Switch to public server mode
-        publicServerRadio.setSelected(true);
-        updateProbeTypeUI();
-        
-        // Set up for Google DNS testing
-        serverAddressField.setText("8.8.8.8");
-        
-        resultsArea.appendText("🌐 Google DNS Test Configuration Applied\n");
-        resultsArea.appendText("This will test Google's public DNS server (8.8.8.8)\n\n");
-    }
-    
-    @FXML
-    private void handleTestPublicWebsite() {
-        // Switch to public server mode
-        publicServerRadio.setSelected(true);
-        updateProbeTypeUI();
-        
-        // Set up for website testing
-        serverAddressField.setText("github.com");
-        
-        resultsArea.appendText("😈 GitHub Test Configuration Applied\n");
-        resultsArea.appendText("Time to probe the devilish depths of GitHub's network! 👹\n\n");
-    }
-    
+
     @FXML
     private void handleStartLocalServer() {
         if (localServerProcess != null && localServerProcess.isAlive()) {
-            resultsArea.appendText("⚠️ Local server is already running!\n");
+            appendResults("⚠️ Local server is already running!\n");
             return;
         }
         
-        resultsArea.appendText("🚀 Starting Local Server...\n");
+        appendResults("🚀 Starting Local Server...\n");
         startServerButton.setDisable(true);
         
-        // Start server in background task
         Task<Void> serverTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
@@ -381,8 +359,6 @@ public class NetworkProbeController {
                     pb.directory(new File(System.getProperty("user.dir")));
                     
                     localServerProcess = pb.start();
-                    
-                    // Give it a moment to start
                     Thread.sleep(2000);
                     
                     Platform.runLater(() -> {
@@ -390,14 +366,11 @@ public class NetworkProbeController {
                             serverStatusLabel.setText("✅ Running");
                             serverStatusLabel.setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
                             stopServerButton.setDisable(false);
-                            resultsArea.appendText("✅ Local server started successfully!\n");
-                            resultsArea.appendText("📡 Server running on ports: UDP 5001, TCP 5002\n");
-                            resultsArea.appendText("🏠 You can now test against 'localhost'\n\n");
+                            appendResults("✅ Local server started successfully!\n");
                         } else {
                             serverStatusLabel.setText("❌ Failed to Start");
                             serverStatusLabel.setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
-                            resultsArea.appendText("❌ Failed to start local server\n");
-                            resultsArea.appendText("💡 Try starting manually: mvn exec:java@run-server\n\n");
+                            appendResults("❌ Failed to start local server\n");
                         }
                         startServerButton.setDisable(false);
                     });
@@ -406,7 +379,7 @@ public class NetworkProbeController {
                     Platform.runLater(() -> {
                         serverStatusLabel.setText("❌ Error");
                         serverStatusLabel.setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
-                        resultsArea.appendText("❌ Error starting server: " + e.getMessage() + "\n\n");
+                        appendResults("❌ Error starting server: " + e.getMessage() + "\n");
                         startServerButton.setDisable(false);
                     });
                 }
@@ -427,20 +400,16 @@ public class NetworkProbeController {
             serverStatusLabel.setText("⏹️ Stopped");
             serverStatusLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-weight: bold;");
             stopServerButton.setDisable(true);
-            resultsArea.appendText("⏹️ Local server stopped\n\n");
+            appendResults("⏹️ Local server stopped\n\n");
         }
     }
     
-    @FXML
-    private void handleClearResults() {
-        resultsArea.clear();
-        resultsArea.appendText("🧹 Results cleared\n\n");
-    }
+    @FXML private void handleClearResults() { resultsArea.clear(); }
     
     @FXML
     private void handleSaveResults() {
         if (resultsArea.getText().trim().isEmpty()) {
-            resultsArea.appendText("⚠️ No results to save\n");
+            appendResults("⚠️ No results to save\n");
             return;
         }
         
@@ -451,7 +420,6 @@ public class NetworkProbeController {
             new FileChooser.ExtensionFilter("All Files", "*.*")
         );
         
-        // Set default filename with timestamp
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
         fileChooser.setInitialFileName("network_probe_results_" + timestamp + ".txt");
         
@@ -464,9 +432,9 @@ public class NetworkProbeController {
                 writer.write("Mode: " + (publicServerRadio.isSelected() ? "Public Server" : "Custom Server") + "\n\n");
                 writer.write(resultsArea.getText());
                 
-                resultsArea.appendText("💾 Results saved to: " + file.getAbsolutePath() + "\n");
+                appendResults("💾 Results saved to: " + file.getAbsolutePath() + "\n");
             } catch (IOException e) {
-                resultsArea.appendText("❌ Error saving results: " + e.getMessage() + "\n");
+                appendResults("❌ Error saving results: " + e.getMessage() + "\n");
             }
         }
     }
@@ -488,10 +456,6 @@ public class NetworkProbeController {
         } else if (!runTcpCheckBox.isSelected() && runUdpCheckBox.isSelected()) {
             args.add("-p");
             args.add("udp");
-        }
-        
-        if (!runTracerouteCheckBox.isSelected()) {
-            args.add("--no-traceroute");
         }
         
         return args;

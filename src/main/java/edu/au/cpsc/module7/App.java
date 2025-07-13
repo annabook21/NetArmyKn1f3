@@ -2,7 +2,9 @@ package edu.au.cpsc.module7;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import edu.au.cpsc.module7.controllers.ToolInstallationDialog;
 import edu.au.cpsc.module7.di.AppModule;
+import edu.au.cpsc.module7.services.SystemToolsManager;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -24,7 +26,7 @@ import java.util.logging.Logger;
 public class App extends Application {
     private static final Logger LOGGER = Logger.getLogger(App.class.getName());
 
-    private Injector injector;
+    private static Injector injector;
 
     @Override
     public void init() {
@@ -47,6 +49,26 @@ public class App extends Application {
             primaryStage.show();
 
             LOGGER.info("NetArmyKn1f3 application started successfully");
+
+            // Perform dependency check AFTER the main window is shown
+            SystemToolsManager toolsManager = injector.getInstance(SystemToolsManager.class);
+            java.util.List<String> missingTools = toolsManager.getMissingTools();
+            LOGGER.info("Missing tools detected: " + missingTools);
+            
+            if (!missingTools.isEmpty()) {
+                LOGGER.info("Showing tool installation dialog for missing tools: " + missingTools);
+                // Small delay to ensure main window is fully rendered
+                Platform.runLater(() -> {
+                    try {
+                        Thread.sleep(500); // Give UI time to settle
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                    ToolInstallationDialog.showInstallationDialog(toolsManager);
+                });
+            } else {
+                LOGGER.info("No missing tools detected, skipping installation dialog");
+            }
 
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Failed to start application", e);

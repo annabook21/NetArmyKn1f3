@@ -45,15 +45,21 @@ graph TD
         E[nmap]
         F[traceroute]
         G["ifconfig / ipconfig"]
+        H[mtr]
+        I[hping3]
     end
 
     A -->|User Input| B
     B -->|Executes| E
     B -->|Executes| F
     B -->|Executes| G
+    B -->|Executes| H
+    B -->|Executes| I
     E -->|Output| B
     F -->|Output| B
     G -->|Output| B
+    H -->|Output| B
+    I -->|Output| B
     B -->|Updates| C
     B -->|Renders Via| D
     C -->|Data For| D
@@ -94,13 +100,14 @@ This section breaks down the core classes of the application.
 
 -   **`MainWindowController.java`**: The primary controller for the main application window. It manages the tab pane and orchestrates the initialization of the other controllers.
 -   **`NetworkScannerController.java`**: Governs the "Network Scanner" tab. It captures user input for scan configurations (CIDR/IP range, scan type), initiates scans via the `NetworkScannerService`, and populates the results table and visualization with the returned `NetworkHost` data. It also handles the bidirectional communication between the results table and the D3.js map.
--   **`NetworkProbeController.java`**: Manages the "Network Probe" tab. It takes a target hostname/IP, executes a traceroute via the `SystemToolsManager`, and passes the resulting hop data to the `NetworkVisualizationService` to render the network path.
+-   **`NetworkProbeController.java`**: Manages the "Network Probe" tab. It takes a target hostname/IP, allows the user to select between `traceroute` and `mtr` for path analysis, executes the chosen tool via the `SystemToolsManager`, and passes the results to the visualization service.
 -   **`SystemInformationController.java`**: (Implicitly from `SystemInformation.fxml`) Backs the "System Information" tab. It queries the `SystemToolsManager` to get local network interface and OS details and displays them in the UI.
--   **`SettingsDialogController.java`**: Handles the settings dialog, allowing users to configure application-level settings, such as paths to external tools (`nmap`, `traceroute`). It interacts with the `SettingsService` to persist these settings.
+-   **`SettingsDialogController.java`**: Handles the settings dialog, allowing users to configure application-level settings, such as paths to external tools (`nmap`, `traceroute`, `mtr`, `hping3`). It interacts with the `SettingsService` to persist these settings.
+-   **`PacketCrafterController.java`**: The controller for the new "Packet Crafter" tab. It will be responsible for building and executing `hping3` commands based on user input. *(This controller is currently a placeholder for future development.)*
 
 #### 4.2. Services (`src/main/java/.../services`)
 
--   **`SystemToolsManager.java`**: A critical service acting as an abstraction layer over command-line executables. It provides a unified API to run external processes like `nmap` and `traceroute`, capturing their `stdout` and `stderr` streams, managing timeouts, and returning the results as a `QueryResult` object. This isolates the rest of the application from the complexities of process management.
+-   **`SystemToolsManager.java`**: A critical service acting as an abstraction layer over command-line executables. It provides a unified API to run external processes like `nmap`, `traceroute`, `mtr`, and `hping3`, capturing their `stdout` and `stderr` streams, managing timeouts, and returning the results as a `QueryResult` object. This isolates the rest of the application from the complexities of process management.
 -   **`NetworkScannerService.java`**: Orchestrates the entire network scanning process. It receives a `ScanConfiguration` from the controller, constructs the appropriate `nmap` command-line arguments, executes the command via `SystemToolsManager`, and then parses the resulting XML output into a list of `NetworkHost` model objects.
 -   **`NetworkVisualizationService.java`**: The bridge between the Java backend and the D3.js frontend. It loads the HTML/JS/CSS for the visualizations into a `JavaFX WebView`. Its primary role is to serialize Java model objects (like `List<NetworkHost>`) into a JSON string and pass this data to the JavaScript environment to be rendered by D3.js.
 -   **`SettingsService.java`**: Manages the loading and saving of application settings. It handles the `settings.properties` file, providing a simple key-value store for persisting configuration data across application sessions.
@@ -152,9 +159,10 @@ The application's UI is partitioned into several FXML files, each representing a
 -   **`MainWindow.fxml`**: The main application container. It defines the primary window structure, including the main menu and a `TabPane` that holds the other modules. Its controller is `MainWindowController`.
 -   **`SystemInformation.fxml`**: The view for the "System Information" tab. It contains labels and text areas to display the local machine's OS and network interface data, providing an at-a-glance dashboard of the local host's configuration.
 -   **`NetworkScanner.fxml`**: The view for the "Network Scanner" tab. This is the most complex view, containing input fields for scan configuration, a `TableView` for results, a `WebView` for the D3.js visualization, and controls for interacting with the map (e.g., a dropdown to switch graph layouts). Its controller is `NetworkScannerController`.
--   **`NetworkProbe.fxml`**: The view for the "Network Probe" tab. It includes a text field for the target host, a "Start Probe" button, a `WebView` for the traceroute visualization, and a `TextArea` for raw output. Its controller is `NetworkProbeController`.
+-   **`NetworkProbe.fxml`**: The view for the "Network Probe" tab. It includes a text field for the target host, a `ChoiceBox` to select between `Traceroute` and `MTR`, a "Start Probe" button, a `WebView` for the visualization, and a `TextArea` for raw output. Its controller is `NetworkProbeController`.
 -   **`PacketAnalyzer.fxml`**: The view for the future "Packet Analyzer" module. It currently serves as a placeholder for future functionality related to live packet capture.
--   **`SettingsDialog.fxml`**: A modal dialog window for application settings. It provides fields for users to specify paths to required command-line tools (`nmap`, `traceroute`), ensuring the application can locate these external dependencies. Its controller is `SettingsDialogController`.
+-   **`PacketCrafter.fxml`**: The view for the new "Packet Crafter" tab, designed to provide a user interface for `hping3`. It currently serves as a placeholder.
+-   **`SettingsDialog.fxml`**: A modal dialog window for application settings. It provides fields for users to specify paths to required command-line tools (`nmap`, `traceroute`, `mtr`, `hping3`), ensuring the application can locate these external dependencies. Its controller is `SettingsDialogController`.
 -   **`ToolInstallationDialog.fxml`**: A helper dialog used to guide the user through the process of installing required tools like `nmap` if they are not found on the system. It improves the first-run user experience by providing actionable guidance.
 
 ## 7. Key Architectural Patterns

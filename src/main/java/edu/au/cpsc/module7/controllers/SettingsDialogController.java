@@ -22,6 +22,8 @@ public class SettingsDialogController implements Initializable {
     private static final Logger LOGGER = Logger.getLogger(SettingsDialogController.class.getName());
 
     @FXML private TextField pythonPathField; // may be null if Python section removed from FXML
+    @FXML private TextField mtrPathField;
+    @FXML private TextField hping3PathField;
     @FXML private Spinner<Integer> timeoutSpinner;
     @FXML private Spinner<Integer> historySpinner;
     @FXML private CheckBox autoSaveCheckBox;
@@ -29,6 +31,8 @@ public class SettingsDialogController implements Initializable {
     @FXML private ComboBox<String> fontFamilyComboBox;
     @FXML private Spinner<Integer> fontSizeSpinner;
     @FXML private Button browsePathButton;
+    @FXML private Button browseMtrPathButton;
+    @FXML private Button browseHping3PathButton;
     @FXML private Button resetButton;
     @FXML private Button saveButton;
     @FXML private Button cancelButton;
@@ -77,8 +81,10 @@ public class SettingsDialogController implements Initializable {
 
     private void setupEventHandlers() {
         if (browsePathButton != null) {
-            browsePathButton.setOnAction(e -> browsePythonPath());
+            browsePathButton.setOnAction(e -> browseForExecutable(pythonPathField, "Python Interpreter"));
         }
+        browseMtrPathButton.setOnAction(e -> browseForExecutable(mtrPathField, "MTR Executable"));
+        browseHping3PathButton.setOnAction(e -> browseForExecutable(hping3PathField, "hping3 Executable"));
         resetButton.setOnAction(e -> resetToDefaults());
         saveButton.setOnAction(e -> saveSettings());
         cancelButton.setOnAction(e -> handleCancel());
@@ -94,6 +100,8 @@ public class SettingsDialogController implements Initializable {
             if (pythonPathField != null) {
                 pythonPathField.setText(settingsService.getPythonPath());
             }
+            mtrPathField.setText(settingsService.getMtrPath());
+            hping3PathField.setText(settingsService.getHping3Path());
             timeoutSpinner.getValueFactory().setValue(settingsService.getTimeoutSeconds());
             historySpinner.getValueFactory().setValue(settingsService.getMaxHistory());
             autoSaveCheckBox.setSelected(settingsService.getAutoSaveResults());
@@ -107,13 +115,13 @@ public class SettingsDialogController implements Initializable {
         }
     }
 
-    private void browsePythonPath() {
-        if (pythonPathField == null) return; // section removed
+    private void browseForExecutable(TextField pathField, String title) {
+        if (pathField == null) return;
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select Python Interpreter");
+        fileChooser.setTitle("Select " + title);
 
         // Set initial directory
-        String currentPath = pythonPathField.getText();
+        String currentPath = pathField.getText();
         if (currentPath != null && !currentPath.isEmpty()) {
             File currentFile = new File(currentPath);
             if (currentFile.getParentFile() != null && currentFile.getParentFile().exists()) {
@@ -121,17 +129,11 @@ public class SettingsDialogController implements Initializable {
             }
         }
 
-        // Add file filters
-        fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Python Executable", "python*", "python.exe", "python3*"),
-                new FileChooser.ExtensionFilter("All Files", "*.*")
-        );
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("All Files", "*.*"));
 
-        File selectedFile = fileChooser.showOpenDialog(browsePathButton.getScene().getWindow());
+        File selectedFile = fileChooser.showOpenDialog(pathField.getScene().getWindow());
         if (selectedFile != null) {
-            if (pythonPathField != null) {
-                pythonPathField.setText(selectedFile.getAbsolutePath());
-            }
+            pathField.setText(selectedFile.getAbsolutePath());
         }
     }
 
@@ -146,6 +148,8 @@ public class SettingsDialogController implements Initializable {
                 if (pythonPathField != null) {
                     pythonPathField.setText("/usr/bin/python3");
                 }
+                mtrPathField.setText("mtr");
+                hping3PathField.setText("hping3");
                 timeoutSpinner.getValueFactory().setValue(30);
                 historySpinner.getValueFactory().setValue(20);
                 autoSaveCheckBox.setSelected(false);
@@ -172,6 +176,8 @@ public class SettingsDialogController implements Initializable {
             if (pythonPathField != null) {
                 settingsService.setSetting("python.path", pythonPathField.getText());
             }
+            settingsService.setSetting("mtr.path", mtrPathField.getText());
+            settingsService.setSetting("hping3.path", hping3PathField.getText());
             settingsService.setSetting("timeout.seconds", timeoutSpinner.getValue().toString());
             settingsService.setSetting("max.history", historySpinner.getValue().toString());
             settingsService.setSetting("auto.save.results", String.valueOf(autoSaveCheckBox.isSelected()));
@@ -202,19 +208,27 @@ public class SettingsDialogController implements Initializable {
             return true; // no python validation needed
         }
 
-        String pythonPath = pythonPathField.getText();
-        if (pythonPath == null || pythonPath.trim().isEmpty()) {
-            showErrorAlert("Validation Error", "Python path cannot be empty", null);
-            pythonPathField.requestFocus();
+        if (!validateExecutablePath(pythonPathField, "Python")) return false;
+        if (!validateExecutablePath(mtrPathField, "MTR")) return false;
+        if (!validateExecutablePath(hping3PathField, "hping3")) return false;
+
+        return true;
+    }
+
+    private boolean validateExecutablePath(TextField pathField, String toolName) {
+        String path = pathField.getText();
+        if (path == null || path.trim().isEmpty()) {
+            showErrorAlert("Validation Error", toolName + " path cannot be empty", null);
+            pathField.requestFocus();
             return false;
         }
 
-        File pythonFile = new File(pythonPath);
-        if (!pythonFile.exists()) {
+        File file = new File(path);
+        if (!file.exists()) {
             Alert confirmAlert = new Alert(Alert.AlertType.WARNING);
-            confirmAlert.setTitle("Python Path Warning");
-            confirmAlert.setHeaderText("Python executable not found");
-            confirmAlert.setContentText("The specified Python executable does not exist:\n" + pythonPath + "\n\nSave anyway?");
+            confirmAlert.setTitle(toolName + " Path Warning");
+            confirmAlert.setHeaderText(toolName + " executable not found");
+            confirmAlert.setContentText("The specified " + toolName + " executable does not exist:\n" + path + "\n\nSave anyway?");
 
             confirmAlert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
             return confirmAlert.showAndWait().orElse(ButtonType.NO) == ButtonType.YES;
@@ -258,20 +272,17 @@ public class SettingsDialogController implements Initializable {
     }
 
     private boolean hasUnsavedChanges() {
-        if (settingsService == null) return false;
+        boolean pythonChanged = pythonPathField != null && !pythonPathField.getText().equals(settingsService.getPythonPath());
+        boolean mtrChanged = !mtrPathField.getText().equals(settingsService.getMtrPath());
+        boolean hping3Changed = !hping3PathField.getText().equals(settingsService.getHping3Path());
+        boolean timeoutChanged = !timeoutSpinner.getValue().equals(settingsService.getTimeoutSeconds());
+        boolean historyChanged = !historySpinner.getValue().equals(settingsService.getMaxHistory());
+        boolean autoSaveChanged = autoSaveCheckBox.isSelected() != settingsService.getAutoSaveResults();
+        boolean themeChanged = !themeComboBox.getValue().equalsIgnoreCase(settingsService.getTheme());
+        boolean fontChanged = !fontFamilyComboBox.getValue().equals(settingsService.getFontFamily());
+        boolean fontSizeChanged = !fontSizeSpinner.getValue().equals(settingsService.getFontSize());
 
-        try {
-            boolean pythonChanged = (pythonPathField != null) && !pythonPathField.getText().equals(settingsService.getPythonPath());
-            return pythonChanged ||
-                    !timeoutSpinner.getValue().equals(settingsService.getTimeoutSeconds()) ||
-                    !historySpinner.getValue().equals(settingsService.getMaxHistory()) ||
-                    autoSaveCheckBox.isSelected() != settingsService.getAutoSaveResults() ||
-                    !themeComboBox.getValue().toLowerCase().equals(settingsService.getTheme()) ||
-                    !fontFamilyComboBox.getValue().equals(settingsService.getFontFamily()) ||
-                    !fontSizeSpinner.getValue().equals(settingsService.getFontSize());
-        } catch (Exception e) {
-            return false;
-        }
+        return pythonChanged || mtrChanged || hping3Changed || timeoutChanged || historyChanged || autoSaveChanged || themeChanged || fontChanged || fontSizeChanged;
     }
 
     private String capitalize(String str) {

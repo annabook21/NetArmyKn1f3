@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="15" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="edu.au.cpsc.module7.controllers.PacketCrafterController">
+    <padding>
+        <Insets top="15" right="15" bottom="15" left="15"/>
+    </padding>
+
+    <Label text="Packet Crafter (hping3)" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+
+    <GridPane hgap="10" vgap="10">
+        <columnConstraints>
+            <ColumnConstraints hgrow="NEVER"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
+        </columnConstraints>
+
+        <Label text="Target Host:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="targetHostField" promptText="e.g., scanme.nmap.org" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label text="Scan Type:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <ChoiceBox fx:id="scanTypeChoiceBox" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label text="Port(s):" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="portField" promptText="e.g., 80 or 1-1024" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+        <Label text="Count:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <Spinner fx:id="countSpinner" min="1" max="100" initialValue="1" editable="true" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+        <Label text="Additional Flags:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <TextField fx:id="additionalFlagsField" promptText="e.g., --fast" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+    </GridPane>
+
+    <Button fx:id="executeButton" text="Execute hping3" onAction="#handleExecute"/>
+
+    <Separator/>
+
+    <Label text="Output:"/>
+    <TextArea fx:id="outputArea" editable="false" wrapText="true" VBox.vgrow="ALWAYS" prefRowCount="15" style="-fx-font-family: monospace;"/>
+
+</VBox> 

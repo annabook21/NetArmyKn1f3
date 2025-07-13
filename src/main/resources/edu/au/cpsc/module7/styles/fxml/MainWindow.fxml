@@ -44,6 +44,9 @@
                     <Tab text="Network Scanner">
                         <fx:include source="NetworkScanner.fxml"/>
                     </Tab>
+                    <Tab text="Packet Crafter">
+                        <fx:include source="PacketCrafter.fxml"/>
+                    </Tab>
                     <!-- Packet Analyzer temporarily disabled due to FXML resource bundle issue -->
                     <!-- <Tab text="📡 Packet Analyzer">
                         <fx:include source="PacketAnalyzer.fxml"/>

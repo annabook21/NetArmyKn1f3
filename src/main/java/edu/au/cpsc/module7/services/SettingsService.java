@@ -69,6 +69,10 @@ public class SettingsService {
         settings.putIfAbsent("theme", "dark");
         settings.putIfAbsent("font.family", "Courier New");
         settings.putIfAbsent("font.size", "12");
+        settings.putIfAbsent("mtr.path", "mtr");
+        settings.putIfAbsent("hping3.path", "hping3");
+        settings.putIfAbsent("nmap.path", "nmap");
+        settings.putIfAbsent("traceroute.path", "traceroute");
     }
 
     public void saveSettings() throws IOException {
@@ -177,6 +181,34 @@ public class SettingsService {
 
     public String getPythonPath() {
         return getSetting("python.path");
+    }
+
+    public String getMtrPath() {
+        return getSetting("mtr.path");
+    }
+
+    public String getHping3Path() {
+        return getSetting("hping3.path");
+    }
+
+    public void setHping3Path(String hping3Path) {
+        setSetting("hping3.path", hping3Path);
+    }
+
+    public String getNmapPath() {
+        return getSetting("nmap.path");
+    }
+
+    public void setNmapPath(String nmapPath) {
+        setSetting("nmap.path", nmapPath);
+    }
+
+    public String getTraceroutePath() {
+        return getSetting("traceroute.path");
+    }
+
+    public void setTraceroutePath(String traceroutePath) {
+        setSetting("traceroute.path", traceroutePath);
     }
 
     public String getTheme() {

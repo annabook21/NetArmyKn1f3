@@ -35,6 +35,7 @@ The Network Probe module is designed for in-depth analysis of a single, specifie
 
 -   **Target-Specific Analysis**: Accepts a hostname (e.g., `google.com`) or an IP address (e.g., `8.8.8.8`) as input.
 -   **Automated Traceroute Execution**: Performs a `traceroute` to the destination, capturing each intermediate router (hop) along the network path.
+-   **Automated Path Analysis**: Performs a `traceroute` or `mtr` (My Traceroute) to the destination. `mtr` provides a richer, real-time view of packet loss and latency at each hop.
 -   **Dual-View Results Interface**:
     -   **Raw Results View**: Presents the complete, unfiltered command-line output from the underlying network probes for expert review and debugging.
     -   **Topology Map View**: Renders a dynamic, interactive graph of the traceroute path using a **force-directed layout**. This visualization clearly illustrates the journey of packets from the gateway (red node) through intermediate hops (blue nodes) to the final destination (green node).
@@ -58,6 +59,10 @@ This module is a powerful discovery tool for mapping devices and services on the
         -   **Ring Layout**: Organizes hosts in clean, concentric circles, providing a structured and orderly view.
         -   **Force-Directed Layout**: Utilizes a physics-based simulation where nodes repel each other, revealing natural network clusters and topology.
 
+### 2.4. Packet Crafter (hping3)
+
+This advanced module provides a direct interface to the `hping3` tool, allowing for the construction and sending of custom network packets. It is designed for experienced users who need to perform granular network tests, such as firewall rule validation or advanced port scanning. *(Note: This feature is currently under development.)*
+
 ---
 
 ## 3. Architecture and Design
@@ -71,7 +76,7 @@ The application adheres to a modern, modular design pattern, promoting separatio
 -   **Dependency Injection**: Google Guice
 -   **Build System**: Apache Maven
 -   **Visualization**: D3.js v7, rendered within a JavaFX WebView
--   **Core Networking Tools**: `nmap`, `traceroute`, `ifconfig`/`ip` (interfaced via `SystemToolsManager`)
+-   **Core Networking Tools**: `nmap`, `traceroute`, `mtr`, `hping3`, `ifconfig`/`ip` (interfaced via `SystemToolsManager`)
 
 ### 3.2. High-Level Architecture
 
@@ -106,10 +111,10 @@ The project is managed with Maven, simplifying the build process.
 
 -   **Java JDK 17** or newer.
 -   **Apache Maven** 3.6 or newer.
--   **System Tools**: Ensure that `nmap` and `traceroute` are installed on your system and accessible in your system's PATH.
-    -   **macOS (Homebrew)**: `brew install nmap`
-    -   **Debian/Ubuntu**: `sudo apt-get install nmap traceroute`
-    -   **Windows**: Download and install Nmap from the official website (which includes `ncat` for traceroute functionality).
+-   **System Tools**: Ensure that `nmap`, `traceroute`, `mtr`, and `hping3` are installed on your system and accessible in your system's PATH.
+    -   **macOS (Homebrew)**: `brew install nmap mtr hping3`
+    -   **Debian/Ubuntu**: `sudo apt-get install nmap traceroute mtr hping3`
+    -   **Windows**: These tools require more complex installation, often via projects like Nmap for Windows and WSL (Windows Subsystem for Linux).
 
 ### 4.2. Build & Execution
 
@@ -172,3 +177,4 @@ To build the installer, `jpackage` has some platform-specific dependencies that 
 -   **Persistent Scan History**: Save scan results to a local database (e.g., SQLite) to allow for historical comparison and analysis.
 -   **Customizable Nmap Scripts**: Allow users to leverage the Nmap Scripting Engine (NSE) for more advanced vulnerability and discovery scans.
 -   **Export Functionality**: Add options to export scan results and visualizations to common formats (e.g., CSV, PDF, PNG).
+-   **Full hping3 Integration**: Build out the UI for the Packet Crafter module to expose common `hping3` flags and options in a user-friendly way.

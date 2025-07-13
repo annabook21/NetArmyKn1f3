@@ -46,9 +46,9 @@ public class ToolInstallationDialog extends Stage implements Initializable {
 
     private Task<Boolean> currentInstallTask;
 
-    public ToolInstallationDialog(SystemToolsManager toolsManager, Map<String, Boolean> toolAvailability) {
+    public ToolInstallationDialog(SystemToolsManager toolsManager) {
         this.toolsManager = toolsManager;
-        this.toolAvailability = toolAvailability;
+        this.toolAvailability = toolsManager.checkToolAvailability();
 
         initializeDialog();
         createUI();
@@ -117,7 +117,7 @@ public class ToolInstallationDialog extends Stage implements Initializable {
 
         // Apply CSS if available
         try {
-            URL cssUrl = getClass().getResource("/edu/au/cpsc/module7/styles/terminal.css");
+            URL cssUrl = getClass().getResource("/edu/au/cpsc/module7/styles/nord-theme.css");
             if (cssUrl != null) {
                 scene.getStylesheets().add(cssUrl.toExternalForm());
             }
@@ -205,7 +205,7 @@ public class ToolInstallationDialog extends Stage implements Initializable {
 
         setOnCloseRequest(e -> {
             if (currentInstallTask != null && currentInstallTask.isRunning()) {
-                currentInstallTask.cancel();
+                currentInstallTask.cancel(true);
             }
         });
     }
@@ -249,84 +249,58 @@ public class ToolInstallationDialog extends Stage implements Initializable {
         progressBar.progressProperty().bind(currentInstallTask.progressProperty());
         logTextArea.textProperty().bind(currentInstallTask.messageProperty());
 
-        // Handle task completion
-        currentInstallTask.setOnSucceeded(e -> {
-            Platform.runLater(() -> {
-                boolean success = currentInstallTask.getValue();
-                installationCompleted(success);
-            });
-        });
+        currentInstallTask.setOnSucceeded(event -> installationCompleted(currentInstallTask.getValue()));
+        currentInstallTask.setOnFailed(event -> installationCompleted(false));
+        currentInstallTask.setOnCancelled(event -> installationCompleted(false));
 
-        currentInstallTask.setOnFailed(e -> {
-            Platform.runLater(() -> {
-                Throwable exception = currentInstallTask.getException();
-                String errorMsg = "Installation failed: " + (exception != null ? exception.getMessage() : "Unknown error");
-                logTextArea.appendText("\n\nERROR: " + errorMsg);
-                installationCompleted(false);
-                LOGGER.log(Level.SEVERE, errorMsg, exception);
-            });
-        });
 
-        currentInstallTask.setOnCancelled(e -> {
-            Platform.runLater(() -> {
-                logTextArea.appendText("\n\nInstallation cancelled by user.");
-                installationCompleted(false);
-            });
-        });
-
-        // Start installation
-        Thread installThread = new Thread(currentInstallTask);
-        installThread.setDaemon(true);
-        installThread.start();
-
-        LOGGER.info("Started installation of missing tools: " + missingTools);
+        new Thread(currentInstallTask).start();
     }
 
     private void cancelInstallation() {
         if (currentInstallTask != null && currentInstallTask.isRunning()) {
-            currentInstallTask.cancel();
+            currentInstallTask.cancel(true);
         }
     }
 
     private void installationCompleted(boolean success) {
-        // Reset UI
-        cancelButton.setVisible(false);
-        progressBar.setVisible(false);
-        closeButton.setText(success ? "Close" : "Close");
-
-        if (success) {
-            // Refresh tool availability
-            Map<String, Boolean> newAvailability = toolsManager.checkToolAvailability();
-
-            // Update the grid
-            toolsGrid.getChildren().clear();
-            createToolsGrid();
-
-            showInfoAlert("Installation Complete",
-                    "DNS tools have been installed successfully!\n\n" +
-                            "You can now use all DNS query features.");
-        } else {
+        Platform.runLater(() -> {
+            progressBar.progressProperty().unbind();
+            logTextArea.textProperty().unbind();
+            progressBar.setProgress(success ? 1.0 : 0.0);
             installButton.setVisible(true);
-            installButton.setText("Retry Installation");
+            cancelButton.setVisible(false);
 
-            showErrorAlert("Installation Failed",
-                    "Some tools could not be installed automatically.\n\n" +
-                            "Please check the log above for details or install them manually.");
-        }
+            if (success) {
+                showInfoAlert("Success", "Tools installed successfully. Please restart the application.");
+                // Re-check availability and update UI
+                toolsManager.checkToolAvailability();
+                createToolsGrid(); // This will redraw the grid with new status
+            } else {
+                showErrorAlert("Failed", "Installation failed. Check logs for details.");
+            }
+            // Update button state based on new availability
+            installButton.setDisable(toolsManager.getMissingTools().isEmpty());
+        });
     }
 
     private String getToolDescription(String tool) {
-        switch (tool.toLowerCase()) {
-            case "dig":
-                return "Domain Information Groper - Advanced DNS lookup tool with detailed output";
-            case "nslookup":
-                return "Name Server Lookup - Basic DNS resolution utility";
-            case "whois":
-                return "Domain registration and ownership information lookup";
-            case "host":
-                return "Simple hostname to IP address lookup utility";
+        switch (tool) {
+            case "nmap":
+                return "Network discovery and security auditing tool";
+            case "traceroute":
+                return "Network diagnostic tool for tracing packet routes";
+            case "mtr":
+                return "Network diagnostic tool combining ping and traceroute";
+            case "hping3":
+                String desc = "Command-line packet crafting and analysis tool";
+                // Check if nping is available as alternative on macOS
+                if (toolsManager.hasHping3Alternative()) {
+                    desc += " (nping alternative available)";
+                }
+                return desc;
             default:
-                return "DNS utility tool";
+                return "Network utility tool";
         }
     }
 
@@ -348,17 +322,12 @@ public class ToolInstallationDialog extends Stage implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // This method is called if using FXML, but we're creating UI programmatically
+        // This is not called when creating the stage manually
     }
 
-    /**
-     * Factory method to create and show the installation dialog
-     */
     public static void showInstallationDialog(SystemToolsManager toolsManager) {
-        Map<String, Boolean> availability = toolsManager.checkToolAvailability();
-
-        ToolInstallationDialog dialog = new ToolInstallationDialog(toolsManager, availability);
+        // Now checks for availability internally
+        ToolInstallationDialog dialog = new ToolInstallationDialog(toolsManager);
         dialog.showAndWait();
     }
-
 }
