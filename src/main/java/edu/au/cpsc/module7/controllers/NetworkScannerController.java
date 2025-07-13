@@ -416,7 +416,8 @@ public class NetworkScannerController {
         
         try {
             String selectedLayout = layoutChoiceBox.getValue();
-            String mapHTML = visualizationService.generateNetworkMapHTML(scanResults, selectedLayout);
+            // Pass a new ArrayList to match the required List type
+            String mapHTML = visualizationService.generateNetworkMapHTML(new java.util.ArrayList<>(scanResults), selectedLayout);
             networkMapWebView.getEngine().loadContent(mapHTML);
             addLogEntry("Network map updated with " + scanResults.size() + " hosts using " + selectedLayout + " layout");
         } catch (Exception e) {
@@ -440,7 +441,9 @@ public class NetworkScannerController {
         File file = fileChooser.showSaveDialog(exportMapButton.getScene().getWindow());
         if (file != null) {
             try {
-                String mapHTML = visualizationService.generateNetworkMapHTML(scanResults);
+                String selectedLayout = layoutChoiceBox.getValue();
+                // Pass a new ArrayList and the layout to match the required signature
+                String mapHTML = visualizationService.generateNetworkMapHTML(new java.util.ArrayList<>(scanResults), selectedLayout);
                 try (FileWriter writer = new FileWriter(file)) {
                     writer.write(mapHTML);
                 }
