@@ -1,0 +1,41 @@
+package edu.au.cpsc.module7.di;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Singleton;
+import edu.au.cpsc.module7.services.*;
+import javafx.fxml.FXMLLoader;
+import com.google.inject.Injector;
+import com.google.inject.Provider;
+import javax.inject.Inject;
+
+/**
+ * Guice module for application-level bindings.
+ */
+public class AppModule extends AbstractModule {
+    @Override
+    protected void configure() {
+        // Bind services as singletons
+        bind(SettingsService.class).in(Singleton.class);
+        bind(SystemToolsManager.class).in(Singleton.class);
+        bind(DNSQueryService.class).in(Singleton.class);
+        bind(NetworkScannerService.class).in(Singleton.class);
+        bind(TcpdumpPacketCaptureService.class).in(Singleton.class);
+        bind(PacketCaptureService.class).in(Singleton.class);
+        bind(ARPScanner.class).in(Singleton.class);
+        bind(NetworkVisualizationService.class).in(Singleton.class);
+        bind(ProtocolDissectorService.class).in(Singleton.class);
+        
+        // Bind FXMLLoader
+        bind(FXMLLoader.class).toProvider(new Provider<FXMLLoader>() {
+            @Inject
+            private Injector injector;
+
+            @Override
+            public FXMLLoader get() {
+                FXMLLoader loader = new FXMLLoader();
+                loader.setControllerFactory(injector::getInstance);
+                return loader;
+            }
+        });
+    }
+} 
