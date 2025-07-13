@@ -124,7 +124,45 @@ This command will compile the source code, resolve dependencies, and launch the 
 
 ---
 
-## 5. Future Enhancements
+## 5. Creating Native Installers
+
+This project is configured to create native, self-contained installers for macOS, Windows, and Linux using the `jpackage` tool, managed via the `jpackage-maven-plugin`.
+
+### 5.1. Build Command
+
+To create an installer for your current operating system, run the following Maven command:
+
+```sh
+mvn clean package jpackage:jpackage
+```
+
+The installer will be created in the `target/dist/` directory.
+
+### 5.2. Platform-Specific Prerequisites
+
+To build the installer, `jpackage` has some platform-specific dependencies that must be installed first.
+
+-   **macOS**:
+    -   **Prerequisite**: Xcode command-line tools.
+    -   **Installation**: `xcode-select --install`
+    -   **Installer Type**: `.dmg`
+    -   **Icon Format**: The build requires an `.icns` file. A `.png` file is provided, which you will need to convert.
+
+-   **Windows**:
+    -   **Prerequisite**: WiX Toolset.
+    -   **Installation**: Download and install from the [WiX Toolset website](https://wixtoolset.org/).
+    -   **Installer Type**: `.msi`
+    -   **Icon Format**: The build requires an `.ico` file.
+
+-   **Linux**:
+    -   **Prerequisite**: `dpkg-deb` for `.deb` packages or `rpm-build` for `.rpm` packages.
+    -   **Installation (Debian/Ubuntu)**: `sudo apt-get install build-essential`
+    -   **Installer Type**: `.deb`
+    -   **Icon Format**: `.png` (works as is)
+
+---
+
+## 6. Future Enhancements
 
 -   **Packet Analysis Module**: Implement live packet capture and dissection using a library like Pcap4j.
 -   **Persistent Scan History**: Save scan results to a local database (e.g., SQLite) to allow for historical comparison and analysis.

@@ -6,7 +6,7 @@
 
     <groupId>edu.au.cpsc</groupId>
     <artifactId>module7</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>module7</name>
 
     <properties>
@@ -121,6 +121,30 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>edu.au.cpsc.module7.App</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
             </plugin>
@@ -204,4 +228,92 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.panteleyev</groupId>
+                        <artifactId>jpackage-maven-plugin</artifactId>
+                        <version>1.5.0</version>
+                        <configuration>
+                            <name>${project.name}</name>
+                            <appVersion>${project.version}</appVersion>
+                            <vendor>CPSC2710</vendor>
+                            <destination>target/dist</destination>
+                            <icon>net_icon.png</icon>
+                            <winMsi>
+                                <upgradeUuid>a5f3f2e1-4554-4787-ac59-d33c5e8e7a88</upgradeUuid>
+                            </winMsi>
+                            <input>target</input>
+                            <mainJar>${project.build.finalName}-jar-with-dependencies.jar</mainJar>
+                            <mainClass>edu.au.cpsc.module7.App</mainClass>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>mac</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.panteleyev</groupId>
+                        <artifactId>jpackage-maven-plugin</artifactId>
+                        <version>1.5.0</version>
+                        <configuration>
+                            <name>${project.name}</name>
+                            <appVersion>${project.version}</appVersion>
+                            <vendor>CPSC2710</vendor>
+                            <destination>target/dist</destination>
+                            <icon>net_icon.png</icon>
+                            <input>target</input>
+                            <mainJar>${project.build.finalName}-jar-with-dependencies.jar</mainJar>
+                            <mainClass>edu.au.cpsc.module7.App</mainClass>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>linux</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>linux</name>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.panteleyev</groupId>
+                        <artifactId>jpackage-maven-plugin</artifactId>
+                        <version>1.5.0</version>
+                        <configuration>
+                            <name>${project.name}</name>
+                            <appVersion>${project.version}</appVersion>
+                            <vendor>CPSC2710</vendor>
+                            <destination>target/dist</destination>
+                            <icon>net_icon.png</icon>
+                            <input>target</input>
+                            <mainJar>${project.build.finalName}-jar-with-dependencies.jar</mainJar>
+                            <mainClass>edu.au.cpsc.module7.App</mainClass>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
