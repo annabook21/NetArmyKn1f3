@@ -7,13 +7,26 @@
     <groupId>edu.au.cpsc</groupId>
     <artifactId>module7</artifactId>
     <version>1.0.0</version>
-    <name>module7</name>
+    <name>NetArmyKn1f3</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.10.2</junit.version>
         <javafx.version>21.0.3</javafx.version>
+        <aws.sdk.version>2.25.11</aws.sdk.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom</artifactId>
+                <version>${aws.sdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -64,6 +77,30 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
             <version>4.1.100.Final</version>
+        </dependency>
+        
+        <!-- AWS Network Firewall -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>networkfirewall</artifactId>
+        </dependency>
+        
+        <!-- AWS WAF v2 -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>wafv2</artifactId>
+        </dependency>
+        
+        <!-- AWS CloudWatch Logs -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>cloudwatchlogs</artifactId>
+        </dependency>
+        
+        <!-- AWS EC2 for resource discovery -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>ec2</artifactId>
         </dependency>
         
         <!-- Google Guice for Dependency Injection -->
@@ -195,6 +232,7 @@
                 <version>3.1.0</version>
                 <configuration>
                     <mainClass>edu.au.cpsc.module7.App</mainClass>
+                    <commandlineArgs>-Xdock:icon=${project.basedir}/net_icon.png -Xdock:name=NetArmyKn1f3</commandlineArgs>
                 </configuration>
                 <executions>
                     <execution>
@@ -231,36 +269,6 @@
 
     <profiles>
         <profile>
-            <id>windows</id>
-            <activation>
-                <os>
-                    <family>windows</family>
-                </os>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.panteleyev</groupId>
-                        <artifactId>jpackage-maven-plugin</artifactId>
-                        <version>1.5.0</version>
-                        <configuration>
-                            <name>${project.name}</name>
-                            <appVersion>${project.version}</appVersion>
-                            <vendor>CPSC2710</vendor>
-                            <destination>target/dist</destination>
-                            <icon>net_icon.png</icon>
-                            <winMsi>
-                                <upgradeUuid>a5f3f2e1-4554-4787-ac59-d33c5e8e7a88</upgradeUuid>
-                            </winMsi>
-                            <input>target</input>
-                            <mainJar>${project.build.finalName}-jar-with-dependencies.jar</mainJar>
-                            <mainClass>edu.au.cpsc.module7.App</mainClass>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
             <id>mac</id>
             <activation>
                 <os>
@@ -278,7 +286,7 @@
                             <appVersion>${project.version}</appVersion>
                             <vendor>CPSC2710</vendor>
                             <destination>target/dist</destination>
-                            <icon>net_icon.png</icon>
+                            <icon>net_icon.icns</icon>
                             <input>target</input>
                             <mainJar>${project.build.finalName}-jar-with-dependencies.jar</mainJar>
                             <mainClass>edu.au.cpsc.module7.App</mainClass>
@@ -310,6 +318,35 @@
                             <input>target</input>
                             <mainJar>${project.build.finalName}-jar-with-dependencies.jar</mainJar>
                             <mainClass>edu.au.cpsc.module7.App</mainClass>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.panteleyev</groupId>
+                        <artifactId>jpackage-maven-plugin</artifactId>
+                        <version>1.5.0</version>
+                        <configuration>
+                            <name>${project.name}</name>
+                            <appVersion>${project.version}</appVersion>
+                            <vendor>CPSC2710</vendor>
+                            <destination>target/dist</destination>
+                            <icon>net_icon.png</icon>
+                            <input>target</input>
+                            <mainJar>${project.build.finalName}-jar-with-dependencies.jar</mainJar>
+                            <mainClass>edu.au.cpsc.module7.App</mainClass>
+                            <winMenu>true</winMenu>
+                            <winDirChooser>true</winDirChooser>
                         </configuration>
                     </plugin>
                 </plugins>

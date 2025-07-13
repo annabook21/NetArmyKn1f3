@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.au.cpsc.module7.controllers.AwsFirewallTesterController">
+   <children>
+      <!-- Header -->
+      <HBox alignment="CENTER" styleClass="header-section">
+         <children>
+                         <Label styleClass="header-title" text="Firewall Rule Tester">
+               <font>
+                  <Font name="System Bold" size="24.0" />
+               </font>
+            </Label>
+         </children>
+         <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+         </padding>
+      </HBox>
+
+      <!-- Main Content -->
+      <ScrollPane fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
+         <content>
+            <VBox spacing="20.0">
+               <children>
+                  <!-- Configuration Section -->
+                  <TitledPane expanded="true" text="Configuration">
+                     <content>
+                        <VBox spacing="15.0">
+                           <children>
+                              <GridPane hgap="15.0" vgap="10.0">
+                                 <columnConstraints>
+                                    <ColumnConstraints hgrow="NEVER" minWidth="150.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" />
+                                    <ColumnConstraints hgrow="NEVER" minWidth="150.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" />
+                                 </columnConstraints>
+                                 <rowConstraints>
+                                    <RowConstraints />
+                                    <RowConstraints />
+                                    <RowConstraints />
+                                 </rowConstraints>
+                                 <children>
+                                    <Label text="Configuration Name:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                    <TextField fx:id="configurationNameField" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                                    
+                                    <Label text="Test Type:" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+                                    <ChoiceBox fx:id="testTypeChoiceBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="3" GridPane.rowIndex="0" />
+                                    
+                                    <Label text="Target URL/Host:Port:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                                    <TextField fx:id="targetResourceField" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="1" />
+                                    
+                                    <Label text="Timeout (seconds):" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                                    <TextField fx:id="timeoutSecondsField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                    
+                                    <Label text="Max Concurrent Tests:" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                                    <TextField fx:id="maxConcurrentTestsField" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+                                 </children>
+                              </GridPane>
+                              
+                              <!-- Additional Options -->
+                              <HBox spacing="20.0">
+                                 <children>
+                                    <CheckBox fx:id="enableResponseAnalysisCheckBox" selected="true" text="Enable Response Analysis" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </content>
+                  </TitledPane>
+
+                  <!-- Payload Selection Section -->
+                  <TitledPane expanded="true" text="Payload Selection">
+                     <content>
+                        <HBox spacing="20.0">
+                           <children>
+                              <VBox spacing="10.0" HBox.hgrow="ALWAYS">
+                                 <children>
+                                    <Label text="Payload Categories:" />
+                                    <ListView fx:id="payloadCategoriesListView" prefHeight="200.0" />
+                                    <Label fx:id="payloadCountLabel" text="Estimated payloads: 0" />
+                                 </children>
+                              </VBox>
+                              <VBox spacing="10.0" HBox.hgrow="ALWAYS">
+                                 <children>
+                                    <Label text="Custom Payloads (key=value format):" />
+                                    <TextArea fx:id="customPayloadsTextArea" prefHeight="150.0" promptText="custom_sql=' OR 1=1--&#10;custom_xss=&lt;script&gt;alert('test')&lt;/script&gt;" />
+                                    
+                                                                         <!-- TLS Fragmentation Info -->
+                                     <VBox spacing="5.0" styleClass="info-box">
+                                        <children>
+                                           <Label text="💡 TLS Fragmentation Testing" styleClass="info-header" />
+                                           <Label text="Tests for servers that fail on large ClientHello messages" />
+                                           <Label text="Critical for post-quantum crypto migration readiness" />
+                                           <HBox spacing="5.0">
+                                              <children>
+                                                 <Label text="Learn more:" />
+                                                 <Hyperlink text="https://tldr.fail/" onAction="#openTldrFailLink" styleClass="link-text" />
+                                              </children>
+                                           </HBox>
+                                        </children>
+                                     </VBox>
+                                 </children>
+                              </VBox>
+                           </children>
+                        </HBox>
+                     </content>
+                  </TitledPane>
+
+                  <!-- Test Execution Section -->
+                  <TitledPane expanded="true" text="Test Execution">
+                     <content>
+                        <VBox spacing="15.0">
+                           <children>
+                              <HBox spacing="15.0" alignment="CENTER_LEFT">
+                                 <children>
+                                    <Button fx:id="startTestButton" onAction="#handleStartTest" prefWidth="120.0" styleClass="primary-button" text="Start Test" />
+                                    <Button fx:id="stopTestButton" onAction="#handleStopTest" prefWidth="120.0" styleClass="secondary-button" text="Stop Test" />
+                                    <Button onAction="#handleClearResults" prefWidth="120.0" styleClass="secondary-button" text="Clear Results" />
+                                 </children>
+                              </HBox>
+                              <VBox spacing="5.0">
+                                 <children>
+                                    <Label fx:id="testStatusLabel" text="Ready to start test" />
+                                    <ProgressBar fx:id="testProgressBar" maxWidth="1.7976931348623157E308" />
+                                 </children>
+                              </VBox>
+                           </children>
+                        </VBox>
+                     </content>
+                  </TitledPane>
+
+                  <!-- Results Section -->
+                  <TitledPane expanded="true" text="Test Results">
+                     <content>
+                        <VBox spacing="15.0">
+                           <children>
+                              <!-- Statistics -->
+                              <HBox spacing="30.0" alignment="CENTER_LEFT">
+                                 <children>
+                                    <VBox spacing="5.0" alignment="CENTER">
+                                       <children>
+                                          <Label text="Total Tests" styleClass="stat-label" />
+                                          <Label fx:id="totalTestsLabel" text="0" styleClass="stat-value" />
+                                       </children>
+                                    </VBox>
+                                    <VBox spacing="5.0" alignment="CENTER">
+                                       <children>
+                                          <Label text="Blocked" styleClass="stat-label" />
+                                          <Label fx:id="blockedTestsLabel" text="0" styleClass="stat-value-blocked" />
+                                       </children>
+                                    </VBox>
+                                    <VBox spacing="5.0" alignment="CENTER">
+                                       <children>
+                                          <Label text="Allowed" styleClass="stat-label" />
+                                          <Label fx:id="allowedTestsLabel" text="0" styleClass="stat-value-allowed" />
+                                       </children>
+                                    </VBox>
+                                    <VBox spacing="5.0" alignment="CENTER">
+                                       <children>
+                                          <Label text="Errors" styleClass="stat-label" />
+                                          <Label fx:id="errorTestsLabel" text="0" styleClass="stat-value-error" />
+                                       </children>
+                                    </VBox>
+                                    <VBox spacing="5.0" alignment="CENTER">
+                                       <children>
+                                          <Label text="Effectiveness" styleClass="stat-label" />
+                                          <Label fx:id="effectivenessLabel" text="0.0%" styleClass="stat-value-effectiveness" />
+                                       </children>
+                                    </VBox>
+                                 </children>
+                              </HBox>
+
+                              <!-- Results Table and Details -->
+                              <SplitPane dividerPositions="0.6" orientation="HORIZONTAL">
+                                 <items>
+                                    <VBox spacing="5.0">
+                                       <children>
+                                          <Label text="Test Results:" />
+                                          <TableView fx:id="resultsTableView" VBox.vgrow="ALWAYS">
+                                             <columns>
+                                                <TableColumn fx:id="testIdColumn" prefWidth="100.0" text="Test ID" />
+                                                <TableColumn fx:id="payloadTypeColumn" prefWidth="150.0" text="Payload Type" />
+                                                <TableColumn fx:id="statusColumn" prefWidth="80.0" text="Status" />
+                                                <TableColumn fx:id="responseTimeColumn" prefWidth="100.0" text="Response Time" />
+                                                <TableColumn fx:id="detectionMethodColumn" prefWidth="200.0" text="Detection Method" />
+                                             </columns>
+                                          </TableView>
+                                       </children>
+                                    </VBox>
+                                    <VBox spacing="5.0">
+                                       <children>
+                                          <Label text="Result Details:" />
+                                          <TextArea fx:id="resultDetailsTextArea" editable="false" VBox.vgrow="ALWAYS" />
+                                       </children>
+                                    </VBox>
+                                 </items>
+                              </SplitPane>
+                           </children>
+                        </VBox>
+                     </content>
+                  </TitledPane>
+               </children>
+               <padding>
+                  <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+               </padding>
+            </VBox>
+         </content>
+      </ScrollPane>
+   </children>
+</VBox> 

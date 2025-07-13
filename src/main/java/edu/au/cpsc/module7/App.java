@@ -97,9 +97,16 @@ public class App extends Application {
 
         // Add application icon if available
         try {
-            URL iconUrl = getClass().getResource("/edu/au/cpsc/module7/icons/app-icon.png");
+            URL iconUrl = getClass().getResource("/net_icon.png");
             if (iconUrl != null) {
-                stage.getIcons().add(new Image(iconUrl.toExternalForm()));
+                Image icon = new Image(iconUrl.toExternalForm());
+                stage.getIcons().add(icon);
+                LOGGER.info("Application icon loaded successfully");
+                
+                // Set dock/taskbar icon for macOS and other platforms
+                setSystemIcon(iconUrl);
+            } else {
+                LOGGER.warning("Application icon not found at /net_icon.png");
             }
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to load application icon", e);
@@ -113,6 +120,41 @@ public class App extends Application {
             LOGGER.info("Application closing...");
             Platform.exit();
         });
+    }
+
+    /**
+     * Set the system-level icon (dock on macOS, taskbar on Windows/Linux)
+     */
+    private void setSystemIcon(URL iconUrl) {
+        try {
+            // For macOS dock icon
+            if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+                // Use reflection to avoid compile-time dependency on macOS-specific classes
+                Class<?> applicationClass = Class.forName("com.apple.eawt.Application");
+                Object application = applicationClass.getMethod("getApplication").invoke(null);
+                
+                // Load the image using AWT
+                java.awt.Image awtImage = java.awt.Toolkit.getDefaultToolkit().getImage(iconUrl);
+                applicationClass.getMethod("setDockIconImage", java.awt.Image.class).invoke(application, awtImage);
+                
+                LOGGER.info("macOS dock icon set successfully");
+            } else {
+                // For Windows/Linux, the JavaFX stage icon should work for taskbar
+                // But we can also try setting the AWT icon as a fallback
+                java.awt.Image awtImage = java.awt.Toolkit.getDefaultToolkit().getImage(iconUrl);
+                
+                // This might help with some Linux window managers
+                if (java.awt.Taskbar.isTaskbarSupported()) {
+                    java.awt.Taskbar taskbar = java.awt.Taskbar.getTaskbar();
+                    if (taskbar.isSupported(java.awt.Taskbar.Feature.ICON_IMAGE)) {
+                        taskbar.setIconImage(awtImage);
+                        LOGGER.info("Taskbar icon set successfully");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.INFO, "Could not set system icon (this is normal on some platforms): " + e.getMessage());
+        }
     }
 
     private void handleUncaughtException(Thread thread, Throwable throwable) {

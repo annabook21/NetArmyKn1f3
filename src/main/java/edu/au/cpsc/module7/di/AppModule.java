@@ -25,6 +25,10 @@ public class AppModule extends AbstractModule {
         bind(NetworkVisualizationService.class).in(Singleton.class);
         bind(ProtocolDissectorService.class).in(Singleton.class);
         
+        // AWS Firewall Tester services
+        bind(FirewallPayloadGenerator.class).in(Singleton.class);
+        bind(AwsFirewallTestingService.class).in(Singleton.class);
+        
         // Bind FXMLLoader
         bind(FXMLLoader.class).toProvider(new Provider<FXMLLoader>() {
             @Inject

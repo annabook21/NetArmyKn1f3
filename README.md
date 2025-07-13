@@ -2,25 +2,25 @@
     <img src="net_icon.png" alt="NetArmyKn1f3 Logo" width="450"/>
 </div>
 
-# NetArmyKn1f3: A Network Analysis & Visualization Suite
+# NetArmyKn1f3: A Network Analysis & Security Testing Suite
 
 **Author**: Anna Booker
 **Version**: 1.0.0
-**Date**: 2024-07-13
+**Date**: 2025-07-13
 
 ---
 
 ## 1. Overview
 
-NetArmyKn1f3 is an advanced, JavaFX-based desktop application engineered for comprehensive network analysis, scanning, and visualization. It serves as an integrated command center for network administrators, cybersecurity professionals, and technology enthusiasts. The suite provides a rich graphical user interface (GUI) to simplify complex networking tasks such as host discovery, port scanning, OS fingerprinting, and visualizing network topologies and traceroute paths.
+NetArmyKn1f3 is an advanced, JavaFX-based desktop application engineered for comprehensive network analysis, scanning, visualization, and security testing. It serves as an integrated command center for network administrators, cybersecurity professionals, penetration testers, and technology enthusiasts. The suite provides a rich graphical user interface (GUI) to simplify complex networking tasks such as host discovery, port scanning, OS fingerprinting, firewall rule testing, and visualizing network topologies and traceroute paths.
 
-The application is built on a modular architecture, separating concerns between UI controllers, networking services, and data models. It leverages the power of industry-standard command-line tools like `nmap` and `traceroute`, parsing their output into structured data that powers interactive, D3.js-based visualizations within a JavaFX WebView.
+The application is built on a modular architecture, separating concerns between UI controllers, networking services, and data models. It leverages the power of industry-standard command-line tools like `nmap` and `traceroute`, while incorporating cutting-edge security testing capabilities including sophisticated payload generation and firewall effectiveness analysis.
 
 ---
 
 ## 2. Core Features
 
-The application's functionality is organized into three primary modules, each accessible via a dedicated tab in the main window.
+The application's functionality is organized into four primary modules, each accessible via a dedicated tab in the main window.
 
 ### 2.1. System Information
 
@@ -48,20 +48,42 @@ This module is a powerful discovery tool for mapping devices and services on the
 -   **Multiple Scan Modalities**:
     -   **Ping Sweep**: A fast scan to identify active hosts on the network.
     -   **Port Scan**: Scans for common open ports on discovered hosts.
-    -   **Full Scan**: A comprehensive deep scan combining host discovery, port scanning, service version detection, and OS fingerprinting.
--   **Advanced Analysis Options**:
-    -   **Hostname Resolution**: Resolves IP addresses to hostnames where possible.
-    -   **Service & OS Detection**: Identifies services on open ports and estimates the host's operating system.
-    -   **Local Traceroute**: Traces the path to discovered hosts.
--   **Interactive Data Visualization**:
-    -   **Bidirectional Map-Table Interactivity**: The results table and the network map are bidirectionally linked. Clicking a node on the map highlights the corresponding row in the table, and vice versa. This allows for seamless exploration of scan results.
-    -   **Switchable Graph Layouts**: A dropdown menu allows the user to switch between two different D3.js-powered layouts for the network map:
-        -   **Ring Layout**: Organizes hosts in clean, concentric circles, providing a structured and orderly view.
-        -   **Force-Directed Layout**: Utilizes a physics-based simulation where nodes repel each other, revealing natural network clusters and topology.
 
-### 2.4. Packet Crafter (hping3)
+### 2.4. Firewall Rule Tester ⭐ **NEW**
 
-This advanced module provides a direct interface to the `hping3` tool, allowing for the construction and sending of custom network packets. It is designed for experienced users who need to perform granular network tests, such as firewall rule validation or advanced port scanning. *(Note: This feature is currently under development.)*
+An advanced security testing module designed to evaluate firewall rule effectiveness through sophisticated payload generation and response analysis.
+
+-   **Professional Payload Generation**: 
+    -   **SQL Injection**: 20+ advanced SQL injection payloads with time-based variants
+    -   **Cross-Site Scripting (XSS)**: 20+ XSS payloads targeting modern browsers
+    -   **Command Injection**: 20+ OS command injection techniques for multiple platforms
+    -   **Path Traversal**: 15+ directory traversal attacks with encoding variations
+    -   **TLS Fragmentation**: Tests for post-quantum crypto readiness ([tldr.fail](https://tldr.fail/))
+    -   **Large Payloads**: Buffer overflow and DoS protection testing
+    -   **Malicious User Agents**: 15+ attack tool signatures and exploit strings
+
+-   **Advanced Encoding Techniques**:
+    -   URL Encoding (single and double)
+    -   Base64 encoding
+    -   Hexadecimal encoding
+    -   Unicode encoding
+    -   HTML entity encoding
+    -   Case variation attacks
+    -   Comment injection bypasses
+
+-   **Intelligent Response Analysis**:
+    -   HTTP status code detection (403, 429, 503)
+    -   Response body keyword analysis
+    -   Connection behavior monitoring
+    -   Response timing analysis
+    -   Effectiveness scoring and statistics
+
+-   **Real-Time Testing Dashboard**:
+    -   Live test execution with progress tracking
+    -   Concurrent payload testing (configurable threads)
+    -   Detailed results table with filtering
+    -   Export capabilities for reporting
+    -   Custom payload support
 
 ---
 
@@ -76,105 +98,137 @@ The application adheres to a modern, modular design pattern, promoting separatio
 -   **Dependency Injection**: Google Guice
 -   **Build System**: Apache Maven
 -   **Visualization**: D3.js v7, rendered within a JavaFX WebView
--   **Core Networking Tools**: `nmap`, `traceroute`, `mtr`, `hping3`, `ifconfig`/`ip` (interfaced via `SystemToolsManager`)
+-   **Security Testing**: Custom payload generation with enterprise-grade encoding
+-   **Core Networking Tools**: `nmap`, `traceroute`, `mtr`, `hping3`, `ifconfig`/`ip`
 
 ### 3.2. High-Level Architecture
 
-The architecture is composed of three main layers:
+The architecture is composed of four main layers:
 
-1.  **Presentation Layer (Controllers & FXML)**: Manages the user interface, defines the layout in FXML, and handles user input. Controllers are responsible for orchestrating calls to the service layer and updating the view with results.
-2.  **Service Layer**: Encapsulates the core business logic. Services like `NetworkScannerService` and `SystemToolsManager` are responsible for executing external processes, parsing their output, and returning structured data models.
-3.  **Data Layer (Models)**: A set of POJOs (Plain Old Java Objects) like `NetworkHost` and `ScanConfiguration` that represent the application's data structures.
+1.  **Presentation Layer (Controllers & FXML)**: Manages the user interface and handles user input
+2.  **Service Layer**: Encapsulates core business logic including security testing services
+3.  **Data Layer (Models)**: POJOs representing application data structures
+4.  **Security Layer**: Advanced payload generation and response analysis engines
 
-### 3.3. Key Components
+### 3.3. Key Security Components
 
--   **`AppModule` (Dependency Injection)**: Configures bindings for Google Guice, ensuring that dependencies are automatically injected throughout the application. This promotes loose coupling.
--   **`*Controller` Classes**: (e.g., `NetworkScannerController`, `NetworkProbeController`) Mediate between the FXML views and the backend services. They handle UI events, trigger scans, and populate UI components with data.
--   **`SystemToolsManager`**: A critical service that acts as a wrapper for executing command-line tools (`nmap`, `traceroute`). It handles process creation, captures `stdout` and `stderr`, and provides a unified interface for running system commands.
--   **`NetworkVisualizationService`**: The bridge between the Java backend and the D3.js frontend. It loads the HTML/JS/CSS for the visualization into a `WebView`, generates the required JSON data from the scan results, and uses the `JSObject` bridge to pass data to the JavaScript environment and render the graphs.
--   **`NetworkScannerService`**: Orchestrates network scans by constructing the correct `nmap` commands based on user configuration, executing them via `SystemToolsManager`, and parsing the XML output into a list of `NetworkHost` objects.
-
-### 3.4. JavaFX-JavaScript Bridge
-
-A key architectural feature is the communication between the JavaFX application and the D3.js visualization running inside a `WebView`.
-
--   **Java to JavaScript**: Java calls JavaScript functions using `webEngine.executeScript()`. This is how the `NetworkVisualizationService` passes the network graph data (as a JSON string) to D3.js for rendering.
--   **JavaScript to Java**: A Java object (an instance of a `JavaBridge` class) is exposed to the JavaScript environment using `webEngine.getLoadWorker().stateProperty().addListener(...)` and `JSObject.setMember()`. This allows JavaScript event handlers (e.g., `onClick` on a D3 node) to call Java methods, enabling features like map-to-table selection.
+-   **`FirewallPayloadGenerator`**: Generates sophisticated attack payloads with multiple encoding variations
+-   **`AwsFirewallTestingService`**: Orchestrates security tests with concurrent execution and response analysis
+-   **`AwsFirewallTesterController`**: Provides real-time testing dashboard with live progress tracking
 
 ---
 
 ## 4. How to Build and Run
 
-The project is managed with Maven, simplifying the build process.
-
 ### 4.1. Prerequisites
 
--   **Java JDK 17** or newer.
--   **Apache Maven** 3.6 or newer.
--   **System Tools**: Ensure that `nmap`, `traceroute`, `mtr`, and `hping3` are installed on your system and accessible in your system's PATH.
-    -   **macOS (Homebrew)**: `brew install nmap mtr hping3`
-    -   **Debian/Ubuntu**: `sudo apt-get install nmap traceroute mtr hping3`
-    -   **Windows**: These tools require more complex installation, often via projects like Nmap for Windows and WSL (Windows Subsystem for Linux).
+-   **Java JDK 17** or newer
+-   **Apache Maven** 3.6 or newer
+-   **System Tools**: `nmap`, `traceroute`, `mtr`, `hping3` (optional, for network modules)
 
-### 4.2. Build & Execution
+### 4.2. Quick Start
 
-1.  Clone the repository:
-    ```sh
+1.  **Clone the repository:**
+    ```bash
     git clone https://github.com/annabook21/NetArmyKn1f3.git
     cd NetArmyKn1f3
     ```
 
-2.  Build the project and run the application using the Maven JavaFX plugin:
-    ```sh
-    mvn clean javafx:run
+2.  **Run the application:**
+    ```bash
+    mvn exec:java -Dexec.mainClass="edu.au.cpsc.module7.App"
     ```
 
-This command will compile the source code, resolve dependencies, and launch the application.
+3.  **Or use the launcher script (macOS/Linux):**
+    ```bash
+    ./run-netarmy.sh
+    ```
 
 ---
 
-## 5. Creating Native Installers
+## 5. Native Application Building 🚀
 
-This project is configured to create native, self-contained installers for macOS, Windows, and Linux using the `jpackage` tool, managed via the `jpackage-maven-plugin`.
+NetArmyKn1f3 supports building native applications for all major operating systems with proper system integration and custom icons.
 
-### 5.1. Build Command
+### 5.1. Cross-Platform Native Apps
 
-To create an installer for your current operating system, run the following Maven command:
+Build native installers with a single command:
 
-```sh
-mvn clean package jpackage:jpackage
+**🍎 macOS:**
+```bash
+mvn clean package
+mvn jpackage:jpackage -P mac
 ```
+**Output**: `target/dist/module7-1.0.0.dmg` with dock icon integration
 
-The installer will be created in the `target/dist/` directory.
+**🐧 Linux:**
+```bash
+mvn jpackage:jpackage -P linux
+```
+**Output**: `.deb` package with desktop integration
 
-### 5.2. Platform-Specific Prerequisites
+**🪟 Windows:**
+```bash
+mvn jpackage:jpackage -P windows
+```
+**Output**: `.exe` installer with Start Menu integration
 
-To build the installer, `jpackage` has some platform-specific dependencies that must be installed first.
+### 5.2. Native App Benefits
 
--   **macOS**:
-    -   **Prerequisite**: Xcode command-line tools.
-    -   **Installation**: `xcode-select --install`
-    -   **Installer Type**: `.dmg`
-    -   **Icon Format**: The build requires an `.icns` file. A `.png` file is provided, which you will need to convert.
-
--   **Windows**:
-    -   **Prerequisite**: WiX Toolset.
-    -   **Installation**: Download and install from the [WiX Toolset website](https://wixtoolset.org/).
-    -   **Installer Type**: `.msi`
-    -   **Icon Format**: The build requires an `.ico` file.
-
--   **Linux**:
-    -   **Prerequisite**: `dpkg-deb` for `.deb` packages or `rpm-build` for `.rpm` packages.
-    -   **Installation (Debian/Ubuntu)**: `sudo apt-get install build-essential`
-    -   **Installer Type**: `.deb`
-    -   **Icon Format**: `.png` (works as is)
+✅ **Perfect System Integration**: Dock/taskbar icons, Start Menu, Applications folder  
+✅ **No Java Runtime Required**: Bundled JRE included  
+✅ **Professional Distribution**: Single-file installers  
+✅ **OS-Specific Icons**: Proper `.icns`, `.ico`, and `.png` support  
 
 ---
 
-## 6. Future Enhancements
+## 6. Security Testing Capabilities
 
--   **Packet Analysis Module**: Implement live packet capture and dissection using a library like Pcap4j.
--   **Persistent Scan History**: Save scan results to a local database (e.g., SQLite) to allow for historical comparison and analysis.
--   **Customizable Nmap Scripts**: Allow users to leverage the Nmap Scripting Engine (NSE) for more advanced vulnerability and discovery scans.
--   **Export Functionality**: Add options to export scan results and visualizations to common formats (e.g., CSV, PDF, PNG).
--   **Full hping3 Integration**: Build out the UI for the Packet Crafter module to expose common `hping3` flags and options in a user-friendly way.
+### 6.1. Payload Categories
+
+| Category | Payloads | Encoding Variants | Use Case |
+|----------|----------|-------------------|----------|
+| **SQL Injection** | 20+ | 8+ encodings | Database security testing |
+| **XSS** | 20+ | Multiple contexts | Web application security |
+| **Command Injection** | 20+ | Cross-platform | System command filtering |
+| **Path Traversal** | 15+ | Directory attacks | File access controls |
+| **TLS Fragmentation** | 10+ | Post-quantum ready | Modern crypto migration |
+| **Large Payloads** | 5+ | Buffer overflow | DoS protection testing |
+
+### 6.2. Response Analysis
+
+-   **HTTP Status Codes**: 403, 429, 503 (blocked), 200, 404 (allowed)
+-   **Content Analysis**: Keywords like "blocked", "forbidden", "access denied"
+-   **Timing Analysis**: Response time patterns indicating filtering
+-   **Connection Behavior**: Reset vs. timeout patterns
+
+### 6.3. Educational Integration
+
+-   **TLS Fragmentation Testing**: References [tldr.fail](https://tldr.fail/) for post-quantum crypto education
+-   **Real-World Scenarios**: Payloads based on actual attack techniques
+-   **Professional Tools Comparison**: Techniques from OWASP ZAP and GoTestWAF
+
+---
+
+## 7. Future Enhancements
+
+-   **Advanced Reporting**: PDF/HTML reports with detailed analysis
+-   **Custom Rule Testing**: User-defined firewall rules validation
+-   **API Integration**: REST API for automated testing
+-   **Machine Learning**: AI-powered payload generation
+-   **Compliance Testing**: OWASP Top 10, PCI DSS validation
+-   **Team Collaboration**: Shared test configurations and results
+
+---
+
+## 8. Contributing
+
+Contributions are welcome! Please read our contributing guidelines and submit pull requests for any improvements.
+
+## 9. License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+**NetArmyKn1f3** - Empowering network professionals with comprehensive analysis and security testing capabilities.

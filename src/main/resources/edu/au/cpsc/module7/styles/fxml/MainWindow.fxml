@@ -47,6 +47,9 @@
                     <Tab text="Packet Crafter">
                         <fx:include source="PacketCrafter.fxml"/>
                     </Tab>
+                    <Tab text="AWS Firewall Tester">
+                        <fx:include source="AwsFirewallTester.fxml"/>
+                    </Tab>
                     <!-- Packet Analyzer temporarily disabled due to FXML resource bundle issue -->
                     <!-- <Tab text="📡 Packet Analyzer">
                         <fx:include source="PacketAnalyzer.fxml"/>

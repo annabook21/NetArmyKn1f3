@@ -114,4 +114,76 @@
 
 .tab-pane .tab:selected {
     -fx-background-color: #3B4252; /* nord1 */
+}
+
+/* --- AWS Firewall Tester Specific Styles --- */
+
+/* Header section */
+.header-section {
+    -fx-background-color: #434C5E; /* nord2 */
+    -fx-border-color: #4C566A; /* nord3 */
+    -fx-border-width: 0 0 2 0;
+}
+
+.header-title {
+    -fx-text-fill: #88C0D0; /* nord8 */
+    -fx-font-weight: bold;
+}
+
+/* Statistics labels */
+.stat-label {
+    -fx-text-fill: #D8DEE9; /* nord4 */
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.stat-value {
+    -fx-text-fill: #ECEFF4; /* nord6 */
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.stat-value-blocked {
+    -fx-text-fill: #BF616A; /* nord11 - red for blocked */
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.stat-value-allowed {
+    -fx-text-fill: #A3BE8C; /* nord14 - green for allowed */
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.stat-value-error {
+    -fx-text-fill: #D08770; /* nord12 - orange for errors */
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.stat-value-effectiveness {
+    -fx-text-fill: #88C0D0; /* nord8 - blue for effectiveness */
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+/* Progress bar */
+.progress-bar {
+    -fx-background-color: #3B4252; /* nord1 */
+    -fx-background-radius: 4;
+}
+
+.progress-bar .bar {
+    -fx-background-color: #5E81AC; /* nord9 */
+    -fx-background-radius: 4;
+}
+
+/* Secondary button styling */
+.secondary-button {
+    -fx-background-color: #4C566A; /* nord3 */
+    -fx-text-fill: #D8DEE9; /* nord4 */
+}
+
+.secondary-button:hover {
+    -fx-background-color: #434C5E; /* nord2 */
 } 
