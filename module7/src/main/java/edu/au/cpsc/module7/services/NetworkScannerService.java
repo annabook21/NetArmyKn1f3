@@ -14,6 +14,8 @@ import java.util.concurrent.*;
 import java.util.regex.Pattern;
 import java.util.function.Consumer;
 import com.google.inject.Inject;
+import org.pcap4j.core.PcapNetworkInterface;
+import org.pcap4j.core.Pcaps;
 
 /**
  * Service for network scanning operations including host discovery and port scanning
@@ -48,11 +50,13 @@ public class NetworkScannerService {
     private ExecutorService executorService;
     private volatile boolean scanRunning = false;
     private final ARPScanner arpScanner;
+    private final AdvancedPortScannerService advancedPortScannerService;
     
     @Inject
-    public NetworkScannerService(ARPScanner arpScanner) {
+    public NetworkScannerService(ARPScanner arpScanner, AdvancedPortScannerService advancedPortScannerService) {
         this.executorService = Executors.newCachedThreadPool();
         this.arpScanner = arpScanner;
+        this.advancedPortScannerService = advancedPortScannerService;
     }
     
     /**
@@ -366,6 +370,14 @@ public class NetworkScannerService {
     }
     
     private void performPortScanning(List<NetworkHost> hosts, ScanConfiguration config, Consumer<String> progressCallback) {
+        if (config.getPortScanType() == ScanConfiguration.PortScanType.TCP_SYN_SCAN) {
+            performSynScan(hosts, config, progressCallback);
+        } else {
+            performConnectScan(hosts, config, progressCallback);
+        }
+    }
+
+    private void performConnectScan(List<NetworkHost> hosts, ScanConfiguration config, Consumer<String> progressCallback) {
         ExecutorService executor = Executors.newFixedThreadPool(config.getThreads());
         List<Future<Void>> futures = new ArrayList<>();
         
@@ -401,6 +413,47 @@ public class NetworkScannerService {
             }
         }
         
+        executor.shutdown();
+    }
+
+    private void performSynScan(List<NetworkHost> hosts, ScanConfiguration config, Consumer<String> progressCallback) {
+        ExecutorService executor = Executors.newFixedThreadPool(config.getThreads());
+        List<Future<Void>> futures = new ArrayList<>();
+
+        for (NetworkHost host : hosts) {
+            Future<Void> future = executor.submit(() -> {
+                try {
+                    InetAddress targetIp = InetAddress.getByName(host.getIpAddress());
+                    PcapNetworkInterface nif = Pcaps.getDevByAddress(targetIp);
+
+                    if (nif == null) {
+                        Platform.runLater(() -> progressCallback.accept("Warning: Could not find network interface for " + host.getIpAddress()));
+                        return null;
+                    }
+
+                    for (int port : config.getPorts()) {
+                        if (advancedPortScannerService.isPortOpen(nif, targetIp, port, config.getTimeout())) {
+                            host.addOpenPort(port);
+                            Platform.runLater(() -> progressCallback.accept("Open port (SYN): " + host.getIpAddress() + ":" + port));
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "SYN scan failed for " + host.getIpAddress(), e);
+                }
+                return null;
+            });
+            futures.add(future);
+        }
+
+        // Wait for all scans to complete
+        for (Future<Void> future : futures) {
+            try {
+                future.get();
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Error in SYN scanning", e);
+            }
+        }
+
         executor.shutdown();
     }
     

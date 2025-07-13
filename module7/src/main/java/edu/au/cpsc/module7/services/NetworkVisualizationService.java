@@ -41,29 +41,30 @@ public class NetworkVisualizationService {
     }
     
     private void calculateHostPositions(List<NetworkHost> hosts) {
-        if (hosts.isEmpty()) return;
-        
-        int numHosts = hosts.size();
-        
-        if (numHosts == 1) {
-            // Single host in center
-            hosts.get(0).setX(400);
-            hosts.get(0).setY(300);
+        if (hosts.isEmpty()) {
             return;
         }
-        
-        // Arrange hosts in a circle for better visualization
+
         double centerX = 400;
         double centerY = 300;
-        double radius = Math.min(200, 50 + numHosts * 10);
-        
-        for (int i = 0; i < numHosts; i++) {
-            double angle = 2 * Math.PI * i / numHosts;
-            double x = centerX + radius * Math.cos(angle);
-            double y = centerY + radius * Math.sin(angle);
-            
-            hosts.get(i).setX(x);
-            hosts.get(i).setY(y);
+        int hostsInRing = 30; // Increased from 20
+        double ringSpacing = 45; // Increased from 40
+        double startRadius = 60; // Increased from 50
+
+        for (int i = 0; i < hosts.size(); i++) {
+            int ringIndex = i / hostsInRing;
+            int hostIndexInRing = i % hostsInRing;
+
+            double currentRadius = startRadius + (ringIndex * ringSpacing);
+            // Distribute hosts evenly on the current ring
+            double angle = 2 * Math.PI * hostIndexInRing / hostsInRing;
+
+            double x = centerX + currentRadius * Math.cos(angle);
+            double y = centerY + currentRadius * Math.sin(angle);
+
+            NetworkHost host = hosts.get(i);
+            host.setX(x);
+            host.setY(y);
         }
     }
     
@@ -247,8 +248,9 @@ public class NetworkVisualizationService {
         html.append("            .append(\"svg\")\n");
         html.append("            .attr(\"width\", width)\n");
         html.append("            .attr(\"height\", height);\n");
+        html.append("\n        const g = svg.append(\"g\"); // Container for zoomable elements\n\n");
         html.append("        const tooltip = d3.select(\"#tooltip\");\n");
-        html.append("        const links = svg.selectAll(\".link\")\n");
+        html.append("        const links = g.selectAll(\".link\")\n");
         html.append("            .data(data.links)\n");
         html.append("            .enter().append(\"line\")\n");
         html.append("            .attr(\"class\", \"link\")\n");
@@ -268,13 +270,13 @@ public class NetworkVisualizationService {
         html.append("                const target = data.nodes.find(n => n.id === d.target);\n");
         html.append("                return target ? target.y : 0;\n");
         html.append("            });\n");
-        html.append("        const nodeGroups = svg.selectAll(\".node\")\n");
+        html.append("        const nodeGroups = g.selectAll(\".node\")\n");
         html.append("            .data(data.nodes)\n");
         html.append("            .enter().append(\"g\")\n");
         html.append("            .attr(\"class\", \"node\")\n");
         html.append("            .attr(\"transform\", d => `translate(${d.x}, ${d.y})`);\n");
         html.append("        nodeGroups.append(\"circle\")\n");
-        html.append("            .attr(\"r\", d => d.type === \"gateway\" ? 25 : 20)\n");
+        html.append("            .attr(\"r\", d => d.type === \"gateway\" ? 20 : 12) // Decreased from 25/20\n");
         html.append("            .attr(\"class\", d => {\n");
         html.append("                if (d.type === \"gateway\") return \"node-gateway\";\n");
         html.append("                return d.status === \"online\" ? \"node-host-online\" : \"node-host-offline\";\n");
@@ -282,17 +284,8 @@ public class NetworkVisualizationService {
         html.append("        nodeGroups.append(\"text\")\n");
         html.append("            .attr(\"class\", \"node-label\")\n");
         html.append("            .attr(\"dy\", \"0.35em\")\n");
-        html.append("            .style(\"font-size\", \"16px\")\n");
+        html.append("            .style(\"font-size\", \"12px\") // Decreased from 16px\n");
         html.append("            .text(d => d.icon);\n");
-        html.append("        nodeGroups.append(\"text\")\n");
-        html.append("            .attr(\"class\", \"node-info\")\n");
-        html.append("            .attr(\"dy\", \"35px\")\n");
-        html.append("            .text(d => d.name);\n");
-        html.append("        nodeGroups.filter(d => d.type === \"host\")\n");
-        html.append("            .append(\"text\")\n");
-        html.append("            .attr(\"class\", \"node-info\")\n");
-        html.append("            .attr(\"dy\", \"45px\")\n");
-        html.append("            .text(d => d.ip);\n");
         html.append("        nodeGroups\n");
         html.append("            .on(\"mouseover\", function(event, d) {\n");
         html.append("                let tooltipContent = `<strong>${d.name}</strong><br/>`;\n");
@@ -331,9 +324,10 @@ public class NetworkVisualizationService {
         html.append("        `;\n");
         html.append("        const zoom = d3.zoom()\n");
         html.append("            .scaleExtent([0.1, 3])\n");
-        html.append("            .on(\"zoom\", function(event) {\n");
-        html.append("                svg.selectAll(\"g, line\").attr(\"transform\", event.transform);\n");
+        html.append("            .on(\"zoom\", (event) => {\n");
+        html.append("                g.attr(\"transform\", event.transform);\n");
         html.append("            });\n");
+        html.append("\n");
         html.append("        svg.call(zoom);\n");
         html.append("    </script>\n");
         html.append("</body>\n");

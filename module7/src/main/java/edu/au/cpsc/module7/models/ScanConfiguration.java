@@ -26,17 +26,20 @@ public class ScanConfiguration {
     
     public enum PortScanType {
         TCP_CONNECT("TCP Connect"),
-        TCP_SYN("TCP SYN"),
-        UDP("UDP"),
-        COMPREHENSIVE("Comprehensive");
-        
+        TCP_SYN_SCAN("TCP SYN Stealth Scan");
+
         private final String displayName;
-        
+
         PortScanType(String displayName) {
             this.displayName = displayName;
         }
-        
+
         public String getDisplayName() {
+            return displayName;
+        }
+
+        @Override
+        public String toString() {
             return displayName;
         }
     }
