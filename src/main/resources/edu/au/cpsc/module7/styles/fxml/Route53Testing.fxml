@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.web.*?>
+
+<VBox spacing="10" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="edu.au.cpsc.module7.controllers.Route53TestingController">
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+
+    <!-- Test Configuration -->
+    <TitledPane text="Route53 Testing Configuration" collapsible="false">
+        <VBox spacing="10">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+            
+            <!-- Basic Configuration -->
+            <GridPane hgap="10" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="150" prefWidth="150"/>
+                    <ColumnConstraints minWidth="200" prefWidth="200"/>
+                    <ColumnConstraints minWidth="150" prefWidth="150"/>
+                    <ColumnConstraints minWidth="200" prefWidth="200"/>
+                </columnConstraints>
+                
+                <Label text="Domain Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <TextField fx:id="domainField" promptText="example.com" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                
+                <Label text="Routing Policy:" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                <ComboBox fx:id="routingPolicyCombo" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+                
+                <Label text="Test Iterations:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <TextField fx:id="iterationsField" text="1000" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                
+                <Label text="Timeout (ms):" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                <TextField fx:id="timeoutField" text="5000" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+            </GridPane>
+            
+            <!-- A Record Discovery -->
+            <VBox spacing="5">
+                <Label text="A Record Discovery (Failover Testing):" style="-fx-font-weight: bold;"/>
+                <HBox spacing="10">
+                    <Button fx:id="discoverARecordsButton" text="Discover A Records" onAction="#handleDiscoverARecords"/>
+                    <Button fx:id="clearDiscoveredRecordsButton" text="Clear" onAction="#handleClearDiscoveredRecords"/>
+                    <Label fx:id="discoveredRecordsStatusLabel" text="No A records discovered" HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <TableView fx:id="discoveredRecordsTable" prefHeight="200" maxHeight="200"/>
+            </VBox>
+            
+            <!-- Weighted Routing Configuration -->
+            <VBox fx:id="weightedConfigPanel" spacing="5" visible="false" managed="false">
+                <Label text="Weighted Routing Configuration:" style="-fx-font-weight: bold;"/>
+                <GridPane hgap="10" vgap="5">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="200" prefWidth="200"/>
+                        <ColumnConstraints minWidth="100" prefWidth="100"/>
+                        <ColumnConstraints minWidth="100" prefWidth="100"/>
+                    </columnConstraints>
+                    
+                    <Label text="Endpoint" GridPane.columnIndex="0" GridPane.rowIndex="0" style="-fx-font-weight: bold;"/>
+                    <Label text="Weight" GridPane.columnIndex="1" GridPane.rowIndex="0" style="-fx-font-weight: bold;"/>
+                    <Label text="Expected %" GridPane.columnIndex="2" GridPane.rowIndex="0" style="-fx-font-weight: bold;"/>
+                </GridPane>
+                <TableView fx:id="weightedEndpointsTable" prefHeight="120" maxHeight="120"/>
+            </VBox>
+            
+            <!-- Tor Configuration -->
+            <VBox spacing="5">
+                <Label text="Tor Configuration:" style="-fx-font-weight: bold;"/>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Button fx:id="startTorButton" text="Start Tor" onAction="#handleStartTor" style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+                    <Button fx:id="stopTorButton" text="Stop Tor" onAction="#handleStopTor" style="-fx-background-color: #f44336; -fx-text-fill: white;"/>
+                    <Label fx:id="torStatusLabel" text="Tor Status: Not checked" style="-fx-font-size: 12px;" HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <HBox spacing="10">
+                    <CheckBox fx:id="useTorCheckBox" text="Use Tor for geographic diversity testing"/>
+                    <Label text="Tor Locations:"/>
+                    <TextField fx:id="torLocationsField" text="3" prefWidth="60"/>
+                    <Button fx:id="checkTorButton" text="Check Tor" onAction="#handleCheckTor"/>
+                </HBox>
+            </VBox>
+            
+            <!-- Advanced Options -->
+            <TitledPane text="Advanced Options" collapsible="true" expanded="false">
+                <GridPane hgap="10" vgap="10">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="150" prefWidth="150"/>
+                        <ColumnConstraints minWidth="200" prefWidth="200"/>
+                        <ColumnConstraints minWidth="150" prefWidth="150"/>
+                        <ColumnConstraints minWidth="200" prefWidth="200"/>
+                    </columnConstraints>
+                    
+                    <Label text="DNS Server:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <ComboBox fx:id="dnsServerCombo" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                    
+                    <Label text="Record Type:" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                    <ComboBox fx:id="recordTypeCombo" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+                    
+                    <CheckBox fx:id="measureLatencyCheckBox" text="Measure latency to endpoints" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2"/>
+                    <CheckBox fx:id="testFailoverCheckBox" text="Test failover scenarios" GridPane.columnIndex="2" GridPane.rowIndex="1" GridPane.columnSpan="2"/>
+                </GridPane>
+            </TitledPane>
+        </VBox>
+    </TitledPane>
+    
+    <!-- Control Buttons -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Button fx:id="startTestButton" text="Start Route53 Test" onAction="#handleStartTest" style="-fx-font-weight: bold;"/>
+        <Button fx:id="stopTestButton" text="Stop Test" onAction="#handleStopTest" disable="true"/>
+        <Separator orientation="VERTICAL"/>
+        <Button fx:id="clearResultsButton" text="Clear Results" onAction="#handleClearResults"/>
+        <Button fx:id="exportResultsButton" text="Export Results" onAction="#handleExportResults"/>
+        <Separator orientation="VERTICAL"/>
+        <ProgressBar fx:id="testProgressBar" prefWidth="200" visible="false"/>
+        <Label fx:id="testStatusLabel" text="Ready"/>
+    </HBox>
+    
+    <!-- Results Display -->
+    <TabPane VBox.vgrow="ALWAYS">
+        <tabs>
+            <!-- Test Results -->
+            <Tab text="Test Results" closable="false">
+                <VBox spacing="10">
+                    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                    
+                    <!-- Results Summary -->
+                    <TitledPane text="Test Summary" collapsible="false">
+                        <GridPane hgap="15" vgap="5">
+                            <columnConstraints>
+                                <ColumnConstraints minWidth="120" prefWidth="120"/>
+                                <ColumnConstraints minWidth="100" prefWidth="100"/>
+                                <ColumnConstraints minWidth="120" prefWidth="120"/>
+                                <ColumnConstraints minWidth="100" prefWidth="100"/>
+                                <ColumnConstraints minWidth="120" prefWidth="120"/>
+                                <ColumnConstraints minWidth="100" prefWidth="100"/>
+                            </columnConstraints>
+                            
+                            <Label text="Test Result:" GridPane.columnIndex="0" GridPane.rowIndex="0" style="-fx-font-weight: bold;"/>
+                            <Label fx:id="testResultLabel" text="Not Started" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                            
+                            <Label text="Total Queries:" GridPane.columnIndex="2" GridPane.rowIndex="0" style="-fx-font-weight: bold;"/>
+                            <Label fx:id="totalQueriesLabel" text="0" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+                            
+                            <Label text="Avg Response Time:" GridPane.columnIndex="4" GridPane.rowIndex="0" style="-fx-font-weight: bold;"/>
+                            <Label fx:id="avgResponseTimeLabel" text="0ms" GridPane.columnIndex="5" GridPane.rowIndex="0"/>
+                            
+                            <Label text="Unique Endpoints:" GridPane.columnIndex="0" GridPane.rowIndex="1" style="-fx-font-weight: bold;"/>
+                            <Label fx:id="uniqueEndpointsLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                            
+                            <Label text="Success Rate:" GridPane.columnIndex="2" GridPane.rowIndex="1" style="-fx-font-weight: bold;"/>
+                            <Label fx:id="successRateLabel" text="0%" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+                            
+                            <Label text="Policy Compliance:" GridPane.columnIndex="4" GridPane.rowIndex="1" style="-fx-font-weight: bold;"/>
+                            <Label fx:id="policyComplianceLabel" text="Unknown" GridPane.columnIndex="5" GridPane.rowIndex="1"/>
+                        </GridPane>
+                    </TitledPane>
+                    
+                    <!-- Detailed Results Table -->
+                    <TableView fx:id="detailedResultsTable" VBox.vgrow="ALWAYS"/>
+                </VBox>
+            </Tab>
+            
+            <!-- Endpoint Distribution -->
+            <Tab text="Endpoint Distribution" closable="false">
+                <VBox spacing="10">
+                    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                    
+                    <!-- Distribution Chart -->
+                    <TitledPane text="Endpoint Distribution Chart" collapsible="false">
+                        <VBox spacing="10">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Chart Type:"/>
+                                <ComboBox fx:id="chartTypeCombo" value="Pie Chart"/>
+                                <Button fx:id="refreshChartButton" text="Refresh" onAction="#handleRefreshChart"/>
+                            </HBox>
+                            <WebView fx:id="distributionChartView" prefHeight="300"/>
+                        </VBox>
+                    </TitledPane>
+                    
+                    <!-- Distribution Statistics -->
+                    <TitledPane text="Distribution Statistics" collapsible="false">
+                        <TableView fx:id="distributionStatsTable" prefHeight="200"/>
+                    </TitledPane>
+                </VBox>
+            </Tab>
+            
+            <!-- Raw Results -->
+            <Tab text="Raw Results" closable="false">
+                <VBox spacing="10">
+                    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                    
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Filter:"/>
+                        <ComboBox fx:id="rawResultsFilterCombo" value="All Results"/>
+                        <Button fx:id="saveRawResultsButton" text="Save to File" onAction="#handleSaveRawResults"/>
+                    </HBox>
+                    
+                    <TextArea fx:id="rawResultsArea" editable="false" VBox.vgrow="ALWAYS" 
+                             style="-fx-font-family: 'Courier New', monospace; -fx-font-size: 12px;"/>
+                </VBox>
+            </Tab>
+            
+            <!-- Test Log -->
+            <Tab text="Test Log" closable="false">
+                <VBox spacing="10">
+                    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                    
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Button text="Clear Log" onAction="#handleClearLog"/>
+                        <CheckBox fx:id="autoScrollLogCheckBox" text="Auto Scroll" selected="true"/>
+                        <Label text="Log Level:"/>
+                        <ComboBox fx:id="logLevelCombo" value="INFO"/>
+                    </HBox>
+                    
+                    <TextArea fx:id="testLogArea" editable="false" VBox.vgrow="ALWAYS"
+                             style="-fx-font-family: 'Courier New', monospace; -fx-font-size: 12px;"/>
+                </VBox>
+            </Tab>
+        </tabs>
+    </TabPane>
+</VBox> 

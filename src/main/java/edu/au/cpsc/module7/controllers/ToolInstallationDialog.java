@@ -299,6 +299,14 @@ public class ToolInstallationDialog extends Stage implements Initializable {
                     desc += " (nping alternative available)";
                 }
                 return desc;
+            case "dig":
+                return "DNS lookup tool for detailed domain information";
+            case "tcpdump":
+                return "Packet capture and analysis tool for network monitoring";
+            case "tor":
+                return "Tor anonymity network for geographic IP diversity testing";
+            case "curl":
+                return "Command-line tool for transferring data with URLs";
             default:
                 return "Network utility tool";
         }

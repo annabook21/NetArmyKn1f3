@@ -29,6 +29,13 @@ public class AppModule extends AbstractModule {
         bind(FirewallPayloadGenerator.class).in(Singleton.class);
         bind(AwsFirewallTestingService.class).in(Singleton.class);
         
+        // Route 53 testing services
+        bind(Route53ResolverTestingService.class).in(Singleton.class);
+        bind(Route53RoutingPolicyTestingService.class).in(Singleton.class);
+        
+        // Tor proxy service for geographic IP diversity
+        bind(TorProxyService.class).in(Singleton.class);
+        
         // Bind FXMLLoader
         bind(FXMLLoader.class).toProvider(new Provider<FXMLLoader>() {
             @Inject

@@ -69,7 +69,7 @@ public class NetworkProbeController implements Initializable {
         publicServerRadio.setToggleGroup(group);
         customServerRadio.setToggleGroup(group);
         publicServerRadio.setSelected(true);
-
+        
         // Initialize ChoiceBox for path analysis
         pathAnalysisChoiceBox.getItems().addAll("None", "Traceroute", "MTR");
         pathAnalysisChoiceBox.setValue("Traceroute");
@@ -77,24 +77,24 @@ public class NetworkProbeController implements Initializable {
         // Add listener to update UI based on selected probe type
         group.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
-                updateProbeTypeUI();
+            updateProbeTypeUI();
             }
         });
         updateProbeTypeUI();
-
+        
         // Add welcome message
         resultsArea.setText("🚀 Network Probe Ready!\n\n" +
-                "Quick Start:\n" +
-                "1. Enter a target (domain or IP)\n" +
+                           "Quick Start:\n" +
+                           "1. Enter a target (domain or IP)\n" +
                 "2. Select path analysis tool (Traceroute/MTR)\n" +
                 "3. Click 'Run Network Probe'\n" +
                 "4. View comprehensive analysis results\n\n" +
-                "💡 Tip: Use the Quick buttons for common targets\n" +
-                "🌐 Public Server mode works with any website or server\n" +
-                "🔧 Custom Server mode requires local server setup\n\n" +
-                "Ready to probe networks! 🔍\n");
+                           "💡 Tip: Use the Quick buttons for common targets\n" +
+                           "🌐 Public Server mode works with any website or server\n" +
+                           "🔧 Custom Server mode requires local server setup\n\n" +
+                           "Ready to probe networks! 🔍\n");
     }
-
+    
     private void updateProbeTypeUI() {
         boolean isCustom = customServerRadio.isSelected();
         
@@ -126,16 +126,16 @@ public class NetworkProbeController implements Initializable {
         stopProbeButton.setDisable(false);
         resultsArea.clear();
         appendResults("Starting probe for " + target + "...\n");
-
+        
         boolean isPublicServer = publicServerRadio.isSelected();
-
+        
         if (isPublicServer) {
             runPublicServerProbe(target);
         } else {
             runCustomServerProbe(target);
         }
     }
-
+    
     private void runPublicServerProbe(String target) {
         currentProbeTask = new Task<>() {
             @Override
@@ -199,12 +199,12 @@ public class NetworkProbeController implements Initializable {
                         appendResults("❌ Error running public server probe: " + e.getMessage() + "\n");
                     });
                 }
-
+                
                 updateMessage("Probe finished.");
                 return null;
             }
         };
-
+        
         currentProbeTask.setOnSucceeded(e -> onProbeFinished());
         currentProbeTask.setOnFailed(e -> {
             appendResults("\nPROBE FAILED\n");
@@ -218,7 +218,7 @@ public class NetworkProbeController implements Initializable {
 
         executorService.submit(currentProbeTask);
     }
-
+    
     private void runCustomServerProbe(String serverAddress) {
         // Check if we're testing a host that likely won't have the services
         boolean isPublicDNS = serverAddress.equals("8.8.8.8") || serverAddress.equals("1.1.1.1") || 
@@ -306,8 +306,8 @@ public class NetworkProbeController implements Initializable {
     }
 
     private void onProbeFinished() {
-        runProbeButton.setDisable(false);
-        stopProbeButton.setDisable(true);
+            runProbeButton.setDisable(false);
+            stopProbeButton.setDisable(true);
     }
 
     private void appendResults(String text) {
@@ -339,7 +339,7 @@ public class NetworkProbeController implements Initializable {
         runUdpCheckBox.setSelected(false);
         appendResults("🏠 Local Server Test Configuration Applied\n");
     }
-
+    
     @FXML
     private void handleStartLocalServer() {
         if (localServerProcess != null && localServerProcess.isAlive()) {

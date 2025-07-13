@@ -114,7 +114,7 @@
 
 .tab-pane .tab:selected {
     -fx-background-color: #3B4252; /* nord1 */
-}
+} 
 
 /* --- AWS Firewall Tester Specific Styles --- */
 

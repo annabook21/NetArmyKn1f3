@@ -58,6 +58,12 @@ public class SystemToolsManager {
         checkTool("mtr", settingsService.getMtrPath());
         checkTool("hping3", settingsService.getHping3Path());
         
+        // Additional network tools used by Route53 and PCAP modules
+        checkTool("dig", "dig");
+        checkTool("tcpdump", getTcpdumpCommand());
+        checkTool("tor", "tor");
+        checkTool("curl", "curl");
+        
         return new HashMap<>(toolAvailability);
     }
 
@@ -119,6 +125,17 @@ public class SystemToolsManager {
             return settingsService.getTraceroutePath();
         }
     }
+    
+    private String getTcpdumpCommand() {
+        String os = systemInfo.getOsName().toLowerCase();
+        if (os.contains("windows")) {
+            return "windump"; // Windows equivalent of tcpdump
+        } else if (os.contains("mac") || os.contains("darwin")) {
+            return "/usr/sbin/tcpdump"; // macOS has tcpdump in /usr/sbin
+        } else {
+            return "tcpdump"; // Linux distributions
+        }
+    }
 
     private void checkTool(String toolName, String path) {
         if (path == null || path.isBlank()) {
@@ -154,6 +171,14 @@ public class SystemToolsManager {
             } else if (toolName.equals("mtr")) {
                 versionCommand = new String[]{path, "--version"};
             } else if (toolName.equals("hping3")) {
+                versionCommand = new String[]{path, "--version"};
+            } else if (toolName.equals("dig")) {
+                versionCommand = new String[]{path, "-v"};
+            } else if (toolName.equals("tcpdump")) {
+                versionCommand = new String[]{path, "--version"};
+            } else if (toolName.equals("tor")) {
+                versionCommand = new String[]{path, "--version"};
+            } else if (toolName.equals("curl")) {
                 versionCommand = new String[]{path, "--version"};
             } else {
                 versionCommand = new String[]{path, "--version"};
@@ -342,6 +367,14 @@ public class SystemToolsManager {
                 return "choco install winmtr"; // WinMTR is the Windows equivalent
             case "hping3":
                 return "choco install hping3"; // May not be available, suggest manual
+            case "dig":
+                return "choco install bind-toolsonly"; // BIND tools for Windows
+            case "tcpdump":
+                return "choco install windump"; // WinDump is Windows equivalent
+            case "tor":
+                return "choco install tor"; // Tor Browser Bundle
+            case "curl":
+                return ""; // Built into Windows 10+
             default:
                 return null;
         }
@@ -392,6 +425,10 @@ public class SystemToolsManager {
             case "traceroute": return "sudo pacman -S traceroute";
             case "mtr": return "sudo pacman -S mtr";
             case "hping3": return "sudo pacman -S hping";
+            case "dig": return "sudo pacman -S bind-tools";
+            case "tcpdump": return "sudo pacman -S tcpdump";
+            case "tor": return "sudo pacman -S tor";
+            case "curl": return "sudo pacman -S curl";
             default: return null;
         }
     }
@@ -402,6 +439,10 @@ public class SystemToolsManager {
             case "traceroute": return "sudo apk add traceroute";
             case "mtr": return "sudo apk add mtr";
             case "hping3": return "sudo apk add hping3";
+            case "dig": return "sudo apk add bind-tools";
+            case "tcpdump": return "sudo apk add tcpdump";
+            case "tor": return "sudo apk add tor";
+            case "curl": return "sudo apk add curl";
             default: return null;
         }
     }
@@ -412,6 +453,10 @@ public class SystemToolsManager {
             case "traceroute": return "sudo yum install -y traceroute";
             case "mtr": return "sudo yum install -y mtr";
             case "hping3": return "sudo yum install -y hping3";
+            case "dig": return "sudo yum install -y bind-utils";
+            case "tcpdump": return "sudo yum install -y tcpdump";
+            case "tor": return "sudo yum install -y tor";
+            case "curl": return "sudo yum install -y curl";
             default: return null;
         }
     }
@@ -537,6 +582,10 @@ public class SystemToolsManager {
         macCommands.put("traceroute", ""); // traceroute is built into macOS
         macCommands.put("mtr", "brew install mtr");
         macCommands.put("hping3", ""); // hping3 is not available in Homebrew, suggest manual installation
+        macCommands.put("dig", ""); // dig is built into macOS
+        macCommands.put("tcpdump", ""); // tcpdump is built into macOS
+        macCommands.put("tor", "brew install tor");
+        macCommands.put("curl", ""); // curl is built into macOS
         INSTALL_COMMANDS.put("mac", macCommands);
 
         // Debian/Ubuntu
@@ -545,6 +594,10 @@ public class SystemToolsManager {
         debianCommands.put("traceroute", "sudo apt-get install -y traceroute");
         debianCommands.put("mtr", "sudo apt-get install -y mtr");
         debianCommands.put("hping3", "sudo apt-get install -y hping3");
+        debianCommands.put("dig", "sudo apt-get install -y dnsutils");
+        debianCommands.put("tcpdump", "sudo apt-get install -y tcpdump");
+        debianCommands.put("tor", "sudo apt-get install -y tor");
+        debianCommands.put("curl", "sudo apt-get install -y curl");
         INSTALL_COMMANDS.put("debian", debianCommands);
 
         // Fedora/CentOS/RHEL
@@ -553,6 +606,10 @@ public class SystemToolsManager {
         fedoraCommands.put("traceroute", "sudo dnf install -y traceroute");
         fedoraCommands.put("mtr", "sudo dnf install -y mtr");
         fedoraCommands.put("hping3", "sudo dnf install -y hping3");
+        fedoraCommands.put("dig", "sudo dnf install -y bind-utils");
+        fedoraCommands.put("tcpdump", "sudo dnf install -y tcpdump");
+        fedoraCommands.put("tor", "sudo dnf install -y tor");
+        fedoraCommands.put("curl", "sudo dnf install -y curl");
         INSTALL_COMMANDS.put("fedora", fedoraCommands);
     }
 

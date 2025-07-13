@@ -23,8 +23,6 @@
                         <MenuItem text="Exit" onAction="#handleExit" accelerator="Shortcut+Q" />
                     </Menu>
                     <Menu text="Tools">
-                        <MenuItem text="Packet Analyzer (PCAP)" onAction="#handlePacketAnalyzer" accelerator="Shortcut+P" />
-                        <SeparatorMenuItem />
                         <MenuItem text="Manage Tools" onAction="#handleManageTools" accelerator="Shortcut+T" />
                     </Menu>
                     <Menu text="Help">
@@ -50,10 +48,12 @@
                     <Tab text="AWS Firewall Tester">
                         <fx:include source="AwsFirewallTester.fxml"/>
                     </Tab>
-                    <!-- Packet Analyzer temporarily disabled due to FXML resource bundle issue -->
-                    <!-- <Tab text="📡 Packet Analyzer">
+                    <Tab text="Route53 Testing">
+                        <fx:include source="Route53Testing.fxml"/>
+                    </Tab>
+                    <Tab text="📡 Packet Analyzer">
                         <fx:include source="PacketAnalyzer.fxml"/>
-                    </Tab> -->
+                    </Tab>
                 </tabs>
             </TabPane>
 
