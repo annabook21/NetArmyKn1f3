@@ -146,39 +146,25 @@ The architecture is composed of four main layers:
 
 ---
 
-## 5. Native Application Building 🚀
+## 5. Running the Application
 
-NetArmyKn1f3 supports building native applications for all major operating systems with proper system integration and custom icons.
+### 5.1. Quick Start
 
-### 5.1. Cross-Platform Native Apps
-
-Build native installers with a single command:
-
-**🍎 macOS:**
+**Using the launcher script:**
 ```bash
-mvn clean package
-mvn jpackage:jpackage -P mac
+./NetArmyKn1f3.sh
 ```
-**Output**: `target/dist/module7-1.0.0.dmg` with dock icon integration
 
-**🐧 Linux:**
+**Direct Maven execution:**
 ```bash
-mvn jpackage:jpackage -P linux
+mvn exec:java -Dexec.mainClass="edu.au.cpsc.module7.App"
 ```
-**Output**: `.deb` package with desktop integration
 
-**🪟 Windows:**
-```bash
-mvn jpackage:jpackage -P windows
-```
-**Output**: `.exe` installer with Start Menu integration
+### 5.2. Prerequisites
 
-### 5.2. Native App Benefits
-
-✅ **Perfect System Integration**: Dock/taskbar icons, Start Menu, Applications folder  
-✅ **No Java Runtime Required**: Bundled JRE included  
-✅ **Professional Distribution**: Single-file installers  
-✅ **OS-Specific Icons**: Proper `.icns`, `.ico`, and `.png` support  
+✅ **Java 21 or later**: Required for JavaFX support  
+✅ **Maven 3.6+**: For dependency management and execution  
+✅ **Network Tools**: `nmap`, `traceroute` (auto-installed if missing)  
 
 ---
 

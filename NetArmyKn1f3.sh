@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # NetArmyKn1f3 Launcher Script
-# This script properly launches the JavaFX application using Maven
+# This script launches the JavaFX application using Maven
 
 # Get the directory where this script is located
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
@@ -24,7 +24,5 @@ if ! command -v mvn &> /dev/null; then
 fi
 
 # Launch the application using Maven
-echo "Starting NetArmyKn1f3..."
-mvn exec:java -Dexec.mainClass="edu.au.cpsc.module7.App"
-
-echo "NetArmyKn1f3 has exited." 
+echo "Starting NetArmyKn1f3 Firewall Tester..."
+mvn exec:java -Dexec.mainClass="edu.au.cpsc.module7.App" 
