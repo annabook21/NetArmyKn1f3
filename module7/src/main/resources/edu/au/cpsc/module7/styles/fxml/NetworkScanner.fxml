@@ -123,6 +123,9 @@
                         <Button fx:id="refreshMapButton" text="Refresh Map" onAction="#handleRefreshMap"/>
                         <Button fx:id="exportMapButton" text="Export Map" onAction="#handleExportMap"/>
                         <Separator orientation="VERTICAL"/>
+                        <Label text="Layout:"/>
+                        <ChoiceBox fx:id="layoutChoiceBox" prefWidth="100.0"/>
+                        <Separator orientation="VERTICAL"/>
                         <Label text="Network Topology Visualization"/>
                     </HBox>
 

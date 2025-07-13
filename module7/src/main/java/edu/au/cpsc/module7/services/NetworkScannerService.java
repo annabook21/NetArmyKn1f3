@@ -50,13 +50,13 @@ public class NetworkScannerService {
     private ExecutorService executorService;
     private volatile boolean scanRunning = false;
     private final ARPScanner arpScanner;
-    private final AdvancedPortScannerService advancedPortScannerService;
+    // private final AdvancedPortScannerService advancedPortScannerService;
     
     @Inject
-    public NetworkScannerService(ARPScanner arpScanner, AdvancedPortScannerService advancedPortScannerService) {
+    public NetworkScannerService(ARPScanner arpScanner) { //, AdvancedPortScannerService advancedPortScannerService) {
         this.executorService = Executors.newCachedThreadPool();
         this.arpScanner = arpScanner;
-        this.advancedPortScannerService = advancedPortScannerService;
+        // this.advancedPortScannerService = advancedPortScannerService;
     }
     
     /**
@@ -432,10 +432,12 @@ public class NetworkScannerService {
                     }
 
                     for (int port : config.getPorts()) {
-                        if (advancedPortScannerService.isPortOpen(nif, targetIp, port, config.getTimeout())) {
-                            host.addOpenPort(port);
-                            Platform.runLater(() -> progressCallback.accept("Open port (SYN): " + host.getIpAddress() + ":" + port));
-                        }
+                        // This requires pcap and root privileges, handle gracefully
+                        // Example of how it might be called:
+                        // if (advancedPortScannerService.isPortOpen(nif, targetIp, port, config.getTimeout())) {
+                        //     host.addOpenPort(port);
+                        //     Platform.runLater(() -> progressCallback.accept("Open port (SYN): " + host.getIpAddress() + ":" + port));
+                        // }
                     }
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "SYN scan failed for " + host.getIpAddress(), e);
@@ -500,7 +502,8 @@ public class NetworkScannerService {
         scanRunning = false;
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdownNow();
-            executorService = Executors.newCachedThreadPool();
+            // Re-initialize the executor for future scans
+            this.executorService = Executors.newCachedThreadPool();
         }
     }
     
