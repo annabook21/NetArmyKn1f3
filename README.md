@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="net_icon.png" alt="NetArmyKn1f3 Logo" width="150"/>
+    <img src="net_icon.png" alt="NetArmyKn1f3 Logo" width="450"/>
 </div>
 
 # NetArmyKn1f3: A Network Analysis & Visualization Suite
