@@ -303,5 +303,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 **NetArmyKn1f3** - Empowering network professionals with comprehensive analysis, security testing, and DNS validation capabilities.
-
-*Built with ❤️ for the cybersecurity community*
