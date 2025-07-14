@@ -5,8 +5,10 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 
-<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.au.cpsc.module7.controllers.SubnetHelperController">
-   <children>
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+   <content>
+      <VBox fx:controller="edu.au.cpsc.module7.controllers.SubnetHelperController">
+         <children>
       <!-- Header Section -->
       <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="header-section">
          <children>
@@ -120,5 +122,7 @@
             <Insets bottom="20.0" left="20.0" right="20.0" top="15.0" />
          </padding>
       </VBox>
-   </children>
-</VBox> 
+         </children>
+      </VBox>
+   </content>
+</ScrollPane> 
