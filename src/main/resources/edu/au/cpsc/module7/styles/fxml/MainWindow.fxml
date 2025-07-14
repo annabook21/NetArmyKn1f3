@@ -54,6 +54,9 @@
                     <Tab text="📡 Packet Analyzer">
                         <fx:include source="PacketAnalyzer.fxml"/>
                     </Tab>
+                    <Tab text="🌐 Subnet Helper">
+                        <fx:include source="SubnetHelper.fxml"/>
+                    </Tab>
                 </tabs>
             </TabPane>
 

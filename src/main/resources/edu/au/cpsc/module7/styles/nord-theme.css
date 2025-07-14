@@ -186,4 +186,117 @@
 
 .secondary-button:hover {
     -fx-background-color: #434C5E; /* nord2 */
+}
+
+/* Subnet Helper Specific Styles */
+.input-section {
+    -fx-background-color: #3B4252; /* nord1 */
+    -fx-background-radius: 8px;
+}
+
+.results-section {
+    -fx-background-color: #434C5E; /* nord2 */
+    -fx-background-radius: 8px;
+}
+
+.header-section {
+    -fx-background-color: #2E3440; /* nord0 */
+    -fx-background-radius: 8px 8px 0 0;
+    -fx-border-color: #4C566A;
+    -fx-border-width: 0 0 1 0;
+}
+
+.header-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #88C0D0; /* nord8 */
+}
+
+.section-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #81A1C1; /* nord9 */
+}
+
+.subsection-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #88C0D0; /* nord8 */
+}
+
+.input-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #D8DEE9; /* nord4 */
+}
+
+.validation-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #616E88; /* muted */
+    -fx-min-width: 200px;
+}
+
+.status-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #D8DEE9; /* nord4 */
+}
+
+.ip-input, .cidr-input, .number-input {
+    -fx-background-color: #4C566A; /* nord3 */
+    -fx-text-fill: #D8DEE9; /* nord4 */
+    -fx-border-color: #5E81AC; /* nord10 */
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 8px;
+    -fx-max-width: 200px;
+}
+
+.ip-input:focused, .cidr-input:focused, .number-input:focused {
+    -fx-border-color: #88C0D0; /* nord8 */
+    -fx-border-width: 2px;
+}
+
+.info-area, .explanation-area {
+    -fx-background-color: #2E3440; /* nord0 */
+    -fx-text-fill: #D8DEE9; /* nord4 */
+    -fx-border-color: #4C566A; /* nord3 */
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    -fx-font-size: 12px;
+}
+
+.subnets-table {
+    -fx-background-color: #2E3440; /* nord0 */
+    -fx-border-color: #4C566A; /* nord3 */
+    -fx-border-radius: 4px;
+}
+
+.subnets-table .column-header {
+    -fx-background-color: #3B4252; /* nord1 */
+    -fx-text-fill: #D8DEE9; /* nord4 */
+    -fx-font-weight: bold;
+}
+
+.subnets-table .table-row-cell {
+    -fx-background-color: #2E3440; /* nord0 */
+    -fx-text-fill: #D8DEE9; /* nord4 */
+}
+
+.subnets-table .table-row-cell:hover {
+    -fx-background-color: #434C5E; /* nord2 */
+}
+
+.subnets-table .table-row-cell:selected {
+    -fx-background-color: #5E81AC; /* nord10 */
+    -fx-text-fill: #ECEFF4; /* nord6 */
+}
+
+.danger-button {
+    -fx-background-color: #BF616A; /* nord11 */
+    -fx-text-fill: #ECEFF4; /* nord6 */
+}
+
+.danger-button:hover {
+    -fx-background-color: #D08770; /* nord12 */
 } 

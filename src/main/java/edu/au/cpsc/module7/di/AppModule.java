@@ -36,6 +36,9 @@ public class AppModule extends AbstractModule {
         // Tor proxy service for geographic IP diversity
         bind(TorProxyService.class).in(Singleton.class);
         
+        // Subnet Helper service
+        bind(SubnetHelperService.class).in(Singleton.class);
+        
         // Bind FXMLLoader
         bind(FXMLLoader.class).toProvider(new Provider<FXMLLoader>() {
             @Inject
