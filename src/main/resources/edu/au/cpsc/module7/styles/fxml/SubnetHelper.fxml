@@ -3,125 +3,130 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
 
-<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="edu.au.cpsc.module7.controllers.SubnetHelperController" 
+            fitToWidth="true" 
+            hbarPolicy="NEVER" 
+            vbarPolicy="AS_NEEDED"
+            prefHeight="600.0"
+            prefWidth="800.0">
    <content>
-      <VBox fx:controller="edu.au.cpsc.module7.controllers.SubnetHelperController">
+      <VBox spacing="0.0">
          <children>
-      <!-- Header Section -->
-      <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="header-section">
-         <children>
-            <Label styleClass="header-title" text="🌐 Subnet Helper" />
-            <Region HBox.hgrow="ALWAYS" />
-            <Button fx:id="loadExample" mnemonicParsing="false" onAction="#loadExample" styleClass="secondary-button" text="Load Example" />
-            <Button fx:id="clearButton" mnemonicParsing="false" onAction="#clearAll" styleClass="danger-button" text="Clear All" />
-         </children>
-         <padding>
-            <Insets bottom="15.0" left="20.0" right="20.0" top="15.0" />
-         </padding>
-      </HBox>
-      
-      <!-- Input Section -->
-      <VBox spacing="15.0" styleClass="input-section">
-         <children>
-            <Label styleClass="section-title" text="Network Configuration" />
-            
-            <!-- IP Address Input -->
-            <VBox spacing="5.0">
+            <!-- Header Section -->
+            <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="header-section">
                <children>
-                  <Label styleClass="input-label" text="IP Address:" />
-                  <HBox alignment="CENTER_LEFT" spacing="10.0">
-                     <children>
-                        <TextField fx:id="ipAddressField" promptText="e.g., 192.168.1.0" styleClass="ip-input" HBox.hgrow="ALWAYS" />
-                        <Label fx:id="ipValidationLabel" styleClass="validation-label" text="Enter an IP address" />
-                     </children>
-                  </HBox>
+                  <Label styleClass="header-title" text="🌐 Subnet Helper" />
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Button fx:id="loadExample" mnemonicParsing="false" onAction="#loadExample" styleClass="secondary-button" text="Load Example" />
+                  <Button fx:id="clearButton" mnemonicParsing="false" onAction="#clearAll" styleClass="danger-button" text="Clear All" />
                </children>
-            </VBox>
-            
-            <!-- CIDR Input -->
-            <VBox spacing="5.0">
-               <children>
-                  <Label styleClass="input-label" text="CIDR Prefix Length:" />
-                  <HBox alignment="CENTER_LEFT" spacing="10.0">
-                     <children>
-                        <TextField fx:id="cidrField" promptText="e.g., 24" styleClass="cidr-input" HBox.hgrow="ALWAYS" />
-                        <Label fx:id="cidrValidationLabel" styleClass="validation-label" text="Enter CIDR prefix (0-32)" />
-                     </children>
-                  </HBox>
-               </children>
-            </VBox>
-            
-            <!-- Number of Subnets Input -->
-            <VBox spacing="5.0">
-               <children>
-                  <Label styleClass="input-label" text="Number of Subnets:" />
-                  <HBox alignment="CENTER_LEFT" spacing="10.0">
-                     <children>
-                        <TextField fx:id="numSubnetsField" promptText="e.g., 4" styleClass="number-input" HBox.hgrow="ALWAYS" />
-                        <Label fx:id="subnetValidationLabel" styleClass="validation-label" text="Enter number of subnets" />
-                     </children>
-                  </HBox>
-               </children>
-            </VBox>
-            
-            <!-- Calculate Button -->
-            <HBox alignment="CENTER_LEFT" spacing="10.0">
-               <children>
-                  <Button fx:id="calculateButton" mnemonicParsing="false" onAction="#calculateSubnets" styleClass="primary-button" text="🔍 Calculate Subnets" />
-                  <ProgressIndicator fx:id="progressIndicator" maxHeight="25.0" maxWidth="25.0" visible="false" />
-                  <Label fx:id="statusLabel" styleClass="status-label" text="Ready" />
-               </children>
+               <padding>
+                  <Insets bottom="15.0" left="20.0" right="20.0" top="15.0" />
+               </padding>
             </HBox>
-         </children>
-         <padding>
-            <Insets bottom="15.0" left="20.0" right="20.0" top="15.0" />
-         </padding>
-      </VBox>
-      
-      <!-- Results Section -->
-      <VBox fx:id="resultsContainer" spacing="15.0" styleClass="results-section" VBox.vgrow="ALWAYS">
-         <children>
-            <Label styleClass="section-title" text="📊 Results" />
             
-            <!-- Network Information -->
-            <VBox spacing="10.0">
+            <!-- Input Section -->
+            <VBox spacing="15.0" styleClass="input-section">
                <children>
-                  <Label styleClass="subsection-title" text="Network Information" />
-                  <TextArea fx:id="networkInfoArea" editable="false" prefRowCount="5" styleClass="info-area" wrapText="true" />
+                  <Label styleClass="section-title" text="Network Configuration" />
+                  
+                  <!-- IP Address Input -->
+                  <VBox spacing="5.0">
+                     <children>
+                        <Label styleClass="input-label" text="IP Address:" />
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                           <children>
+                              <TextField fx:id="ipAddressField" promptText="e.g., 192.168.1.0" styleClass="ip-input" HBox.hgrow="ALWAYS" />
+                              <Label fx:id="ipValidationLabel" styleClass="validation-label" text="Enter an IP address" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+                  
+                  <!-- CIDR Input -->
+                  <VBox spacing="5.0">
+                     <children>
+                        <Label styleClass="input-label" text="CIDR Prefix Length:" />
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                           <children>
+                              <TextField fx:id="cidrField" promptText="e.g., 24" styleClass="cidr-input" HBox.hgrow="ALWAYS" />
+                              <Label fx:id="cidrValidationLabel" styleClass="validation-label" text="Enter CIDR prefix (0-32)" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+                  
+                  <!-- Number of Subnets Input -->
+                  <VBox spacing="5.0">
+                     <children>
+                        <Label styleClass="input-label" text="Number of Subnets:" />
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                           <children>
+                              <TextField fx:id="numSubnetsField" promptText="e.g., 4" styleClass="number-input" HBox.hgrow="ALWAYS" />
+                              <Label fx:id="subnetValidationLabel" styleClass="validation-label" text="Enter number of subnets" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+                  
+                  <!-- Calculate Button -->
+                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+                     <children>
+                        <Button fx:id="calculateButton" mnemonicParsing="false" onAction="#calculateSubnets" styleClass="primary-button" text="🔍 Calculate Subnets" />
+                        <ProgressIndicator fx:id="progressIndicator" maxHeight="25.0" maxWidth="25.0" visible="false" />
+                        <Label fx:id="statusLabel" styleClass="status-label" text="Ready" />
+                     </children>
+                  </HBox>
                </children>
+               <padding>
+                  <Insets bottom="15.0" left="20.0" right="20.0" top="15.0" />
+               </padding>
             </VBox>
             
-            <!-- Explanation -->
-            <VBox spacing="10.0">
+            <!-- Results Section -->
+            <VBox fx:id="resultsContainer" spacing="15.0" styleClass="results-section" minHeight="400.0">
                <children>
-                  <Label styleClass="subsection-title" text="Explanation" />
-                  <TextArea fx:id="explanationArea" editable="false" prefRowCount="3" styleClass="explanation-area" wrapText="true" />
+                  <Label styleClass="section-title" text="📊 Results" />
+                  
+                  <!-- Network Information -->
+                  <VBox spacing="10.0">
+                     <children>
+                        <Label styleClass="subsection-title" text="Network Information" />
+                        <TextArea fx:id="networkInfoArea" editable="false" prefRowCount="5" styleClass="info-area" wrapText="true" />
+                     </children>
+                  </VBox>
+                  
+                  <!-- Explanation -->
+                  <VBox spacing="10.0">
+                     <children>
+                        <Label styleClass="subsection-title" text="Explanation" />
+                        <TextArea fx:id="explanationArea" editable="false" prefRowCount="3" styleClass="explanation-area" wrapText="true" />
+                     </children>
+                  </VBox>
+                  
+                  <!-- Subnets Table -->
+                  <VBox spacing="10.0" minHeight="300.0">
+                     <children>
+                        <Label styleClass="subsection-title" text="Generated Subnets (Double-click to copy)" />
+                        <TableView fx:id="subnetsTable" styleClass="subnets-table" prefHeight="250.0" minHeight="250.0">
+                           <columns>
+                              <TableColumn fx:id="subnetColumn" prefWidth="150.0" text="Subnet" />
+                              <TableColumn fx:id="hostsColumn" prefWidth="100.0" text="Available Hosts" />
+                              <TableColumn fx:id="rangeColumn" prefWidth="300.0" text="Usable IP Range" />
+                           </columns>
+                           <columnResizePolicy>
+                              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                           </columnResizePolicy>
+                        </TableView>
+                     </children>
+                  </VBox>
                </children>
+               <padding>
+                  <Insets bottom="20.0" left="20.0" right="20.0" top="15.0" />
+               </padding>
             </VBox>
-            
-            <!-- Subnets Table -->
-            <VBox spacing="10.0" VBox.vgrow="ALWAYS">
-               <children>
-                  <Label styleClass="subsection-title" text="Generated Subnets (Double-click to copy)" />
-                  <TableView fx:id="subnetsTable" styleClass="subnets-table" VBox.vgrow="ALWAYS">
-                     <columns>
-                        <TableColumn fx:id="subnetColumn" prefWidth="150.0" text="Subnet" />
-                        <TableColumn fx:id="hostsColumn" prefWidth="100.0" text="Available Hosts" />
-                        <TableColumn fx:id="rangeColumn" prefWidth="300.0" text="Usable IP Range" />
-                     </columns>
-                     <columnResizePolicy>
-                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                     </columnResizePolicy>
-                  </TableView>
-               </children>
-            </VBox>
-         </children>
-         <padding>
-            <Insets bottom="20.0" left="20.0" right="20.0" top="15.0" />
-         </padding>
-      </VBox>
          </children>
       </VBox>
    </content>

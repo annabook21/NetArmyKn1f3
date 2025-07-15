@@ -9,6 +9,102 @@
     -fx-font-size: 13px;
 }
 
+/* ScrollPane styling - ensure dark theme is applied when ScrollPane is root */
+.scroll-pane {
+    -fx-base: #2E3440; /* nord0 */
+    -fx-background: #2E3440; /* nord0 */
+    -fx-background-color: #2E3440; /* nord0 */
+    -fx-control-inner-background: #3B4252; /* nord1 */
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: #2E3440; /* nord0 */
+}
+
+.scroll-pane > .corner {
+    -fx-background-color: #2E3440; /* nord0 */
+}
+
+/* Scroll bar styling */
+.scroll-bar {
+    -fx-background-color: #3B4252; /* nord1 */
+}
+
+.scroll-bar .track {
+    -fx-background-color: #2E3440; /* nord0 */
+    -fx-background-radius: 0;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #4C566A; /* nord3 */
+    -fx-background-radius: 4;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #5E81AC; /* nord9 */
+}
+
+.scroll-bar .thumb:pressed {
+    -fx-background-color: #81A1C1; /* nord10 */
+}
+
+.scroll-bar .increment-button, .scroll-bar .decrement-button {
+    -fx-background-color: #3B4252; /* nord1 */
+}
+
+.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow {
+    -fx-background-color: #D8DEE9; /* nord4 */
+}
+
+/* Layout containers - ensure all backgrounds are dark */
+.vbox, .hbox, .border-pane, .pane, .anchor-pane, .grid-pane, .flow-pane, .tile-pane, .stack-pane {
+    -fx-background-color: #2E3440; /* nord0 */
+}
+
+/* Tab content areas */
+.tab-content-area {
+    -fx-background-color: #2E3440; /* nord0 */
+}
+
+.tab-pane {
+    -fx-background-color: #2E3440; /* nord0 */
+}
+
+.tab-pane .tab-content-area {
+    -fx-background-color: #2E3440; /* nord0 */
+}
+
+.tab-pane > .tab-header-area {
+    -fx-background-color: #3B4252; /* nord1 */
+}
+
+/* Additional layout containers to ensure no white backgrounds */
+.split-pane {
+    -fx-background-color: #2E3440; /* nord0 */
+}
+
+.accordion {
+    -fx-background-color: #2E3440; /* nord0 */
+}
+
+.titled-pane {
+    -fx-background-color: #2E3440; /* nord0 */
+}
+
+.titled-pane > .title {
+    -fx-background-color: #3B4252; /* nord1 */
+    -fx-text-fill: #D8DEE9; /* nord4 */
+}
+
+.titled-pane > .content {
+    -fx-background-color: #2E3440; /* nord0 */
+}
+
+/* Ensure all controls have proper dark backgrounds */
+.control {
+    -fx-background-color: #2E3440; /* nord0 */
+}
+
 /* --- Typography --- */
 .label {
     -fx-text-fill: #D8DEE9; /* nord4 */
@@ -188,7 +284,7 @@
     -fx-background-color: #434C5E; /* nord2 */
 }
 
-/* Subnet Helper Specific Styles */
+/* Universal Scroll Pane Styles for All Tabs */
 .scroll-pane {
     -fx-background-color: transparent;
     -fx-border-color: transparent;

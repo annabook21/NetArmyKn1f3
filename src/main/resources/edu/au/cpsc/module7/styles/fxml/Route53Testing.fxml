@@ -5,11 +5,16 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.web.*?>
 
-<VBox spacing="10" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="edu.au.cpsc.module7.controllers.Route53TestingController">
-    <padding>
-        <Insets top="10" right="10" bottom="10" left="10"/>
-    </padding>
+<ScrollPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="edu.au.cpsc.module7.controllers.Route53TestingController"
+            fitToWidth="true" 
+            hbarPolicy="NEVER" 
+            vbarPolicy="AS_NEEDED">
+   <content>
+      <VBox spacing="10">
+         <padding>
+            <Insets top="10" right="10" bottom="10" left="10"/>
+         </padding>
 
     <!-- Test Configuration -->
     <TitledPane text="Route53 Testing Configuration" collapsible="false">
@@ -220,4 +225,6 @@
             </Tab>
         </tabs>
     </TabPane>
-</VBox> 
+      </VBox>
+   </content>
+</ScrollPane> 

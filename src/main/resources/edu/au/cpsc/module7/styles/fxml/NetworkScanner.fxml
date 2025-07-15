@@ -5,12 +5,16 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.web.WebView?>
 
-<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="edu.au.cpsc.module7.controllers.NetworkScannerController"
-      spacing="10">
-    <padding>
-        <Insets top="15" right="15" bottom="15" left="15"/>
-    </padding>
+<ScrollPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="edu.au.cpsc.module7.controllers.NetworkScannerController"
+            fitToWidth="true" 
+            hbarPolicy="NEVER" 
+            vbarPolicy="AS_NEEDED">
+   <content>
+      <VBox spacing="10">
+         <padding>
+            <Insets top="15" right="15" bottom="15" left="15"/>
+         </padding>
 
     <!-- Configuration Panel -->
     <TitledPane text="Scan Configuration" collapsible="false" VBox.vgrow="NEVER">
@@ -155,4 +159,6 @@
             </Tab>
         </tabs>
     </TabPane>
-</VBox> 
+      </VBox>
+   </content>
+</ScrollPane> 
