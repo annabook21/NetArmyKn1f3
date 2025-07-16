@@ -34,62 +34,18 @@ public class TcpdumpPacketCaptureService {
     // Tcpdump command path
     private static final String TCPDUMP_PATH = "/usr/sbin/tcpdump";
     
-    /**
-     * Check if we can run tcpdump without sudo
-     */
-    private boolean canRunTcpdumpWithoutSudo() {
-        try {
-            // Check if user is in access_bpf group (ChmodBPF installed)
-            ProcessBuilder groupCheck = new ProcessBuilder("groups", System.getProperty("user.name"));
-            Process groupProcess = groupCheck.start();
-            boolean finished = groupProcess.waitFor(2, TimeUnit.SECONDS);
-            
-            if (finished && groupProcess.exitValue() == 0) {
-                // Read groups output
-                try (BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(groupProcess.getInputStream()))) {
-                    String groupsLine = reader.readLine();
-                    if (groupsLine != null && groupsLine.contains("access_bpf")) {
-                        logger.info("User is in access_bpf group - packet capture without sudo enabled");
-                        return true;
-                    }
-                }
-            }
-            
-            // Fallback: Test actual packet capture access with a quick interface list
-            ProcessBuilder pb = new ProcessBuilder(TCPDUMP_PATH, "-D");
-            Process process = pb.start();
-            finished = process.waitFor(2, TimeUnit.SECONDS);
-            if (finished) {
-                boolean canCapture = process.exitValue() == 0;
-                if (canCapture) {
-                    logger.info("tcpdump can list interfaces without sudo - packet capture enabled");
-                } else {
-                    logger.info("tcpdump requires sudo for packet capture");
-                }
-                return canCapture;
-            }
-            process.destroyForcibly();
-            return false;
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Error checking packet capture permissions", e);
-            return false;
-        }
-    }
+
     
     /**
-     * Build the tcpdump command with or without sudo
+     * Build the tcpdump command with sudo (consistent with MTR approach)
      */
     private List<String> buildTcpdumpCommand(String interfaceName, String outputFile, String filter) {
         List<String> command = new ArrayList<>();
         
-        // Check if we need sudo (on macOS, tcpdump usually requires root)
-        boolean needsSudo = !canRunTcpdumpWithoutSudo();
-        
-        if (needsSudo) {
-            command.add("sudo");
-            command.add("-n"); // Non-interactive sudo
-        }
+        // Use sudo for tcpdump (consistent with MTR approach)
+        // We've set up sudoers to allow tcpdump without password
+        command.add("sudo");
+        command.add("-n"); // Non-interactive sudo
         
         command.add(TCPDUMP_PATH);
         command.add("-i");
@@ -625,12 +581,9 @@ public class TcpdumpPacketCaptureService {
             ProcessBuilder pb = new ProcessBuilder();
             List<String> command = new ArrayList<>();
             
-            // Check if we need sudo for listing interfaces
-            boolean needsSudo = !canRunTcpdumpWithoutSudo();
-            if (needsSudo) {
-                command.add("sudo");
-                command.add("-n");
-            }
+            // Use sudo for tcpdump (consistent with MTR approach)
+            command.add("sudo");
+            command.add("-n");
             command.add(TCPDUMP_PATH);
             command.add("-D");  // List interfaces
             

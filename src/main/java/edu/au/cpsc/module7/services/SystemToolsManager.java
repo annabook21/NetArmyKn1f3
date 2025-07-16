@@ -476,21 +476,44 @@ public class SystemToolsManager {
     }
 
     public QueryResult executeMtr(String host) {
-        // Try MTR without sudo first, then fall back to sudo if needed
         String mtrPath = settingsService.getMtrPath();
         
-        // First try without sudo (in case permissions are set up differently)
-        QueryResult result = executeCommandWithTimeout(10, mtrPath, "--report", "-c", "1", "--no-dns", host);
-        
-        if (!result.isSuccess() && result.getErrorOutput().contains("Failure to open")) {
-            // If it fails with socket errors, inform user that sudo is needed
-            result.setOutput("⚠️ MTR requires administrator privileges on macOS.\n" +
-                           "💡 Please run the application from terminal with: sudo mvn exec:java -Dexec.mainClass=\"edu.au.cpsc.module7.App\"\n" +
-                           "🔄 Alternatively, use Traceroute which works without sudo.\n");
-            result.setSuccess(false);
+        // On macOS, try sudo MTR (we've set up sudoers to allow this without password)
+        String os = systemInfo.getOsName().toLowerCase();
+        if (os.contains("mac") || os.contains("darwin")) {
+            return executeCommandWithTimeout(15, "sudo", mtrPath, "--report", "-c", "1", "--no-dns", host);
+        } else {
+            // On other systems, try regular MTR
+            return executeCommandWithTimeout(10, mtrPath, "--report", "-c", "1", "--no-dns", host);
         }
+    }
+    
+    private QueryResult executeMtrAlternative(String host) {
+        StringBuilder output = new StringBuilder();
+        output.append("MTR-like output using traceroute (macOS compatible)\n");
+        output.append("HOST: ").append(host).append("\n");
+        output.append("Start: ").append(java.time.LocalDateTime.now()).append("\n");
+        output.append("Hops: Loss%   Snt   Last   Avg  Best  Wrst StDev\n");
         
-        return result;
+        try {
+            // Run traceroute multiple times to simulate MTR behavior
+            for (int run = 1; run <= 3; run++) {
+                QueryResult result = executeCommandWithTimeout(30, getTracerouteCommand(), "-n", "-w", "1", host);
+                if (result.isSuccess()) {
+                    output.append("Run ").append(run).append(":\n").append(result.getOutput());
+                }
+            }
+            
+            QueryResult mtrResult = new QueryResult("mtr-alternative", output.toString());
+            mtrResult.setSuccess(true);
+            mtrResult.setOutput(output.toString());
+            return mtrResult;
+        } catch (Exception e) {
+            QueryResult errorResult = new QueryResult("mtr-alternative", "Failed to execute traceroute-based MTR alternative");
+            errorResult.setSuccess(false);
+            errorResult.setErrorOutput(e.getMessage());
+            return errorResult;
+        }
     }
 
     /**
@@ -506,28 +529,37 @@ public class SystemToolsManager {
      */
     public void executeMtrWithCallback(String host, java.util.function.Consumer<String> outputCallback, java.util.function.Consumer<Boolean> completionCallback) {
         String mtrPath = settingsService.getMtrPath();
+        String os = systemInfo.getOsName().toLowerCase();
         
-        // Try without sudo first
         Thread mtrThread = new Thread(() -> {
-            QueryResult result = executeCommandWithTimeout(10, mtrPath, "--report", "-c", "1", "--no-dns", host);
+            outputCallback.accept("--- Running MTR ---\n");
             
-            if (!result.isSuccess() && result.getErrorOutput().contains("Failure to open")) {
-                // If it fails, provide helpful message
-                outputCallback.accept("⚠️ MTR requires administrator privileges on macOS.\n");
-                outputCallback.accept("💡 Please run the application from terminal with: sudo mvn exec:java -Dexec.mainClass=\"edu.au.cpsc.module7.App\"\n");
-                outputCallback.accept("🔄 Alternatively, use Traceroute which works without sudo.\n");
+            // On macOS, use sudo MTR (we've set up sudoers to allow this without password)
+            String[] command;
+            if (os.contains("mac") || os.contains("darwin")) {
+                command = new String[]{"sudo", mtrPath, "--report", "-c", "1", "--no-dns", host};
+            } else {
+                command = new String[]{mtrPath, "--report", "-c", "1", "--no-dns", host};
+            }
+            
+            QueryResult result = executeCommandWithTimeout(15, command);
+            
+            if (!result.isSuccess()) {
+                outputCallback.accept("❌ MTR failed: " + result.getErrorOutput() + "\n");
                 completionCallback.accept(false);
             } else {
-                // Success case
                 if (!result.getOutput().isEmpty()) {
                     outputCallback.accept(result.getOutput());
                 }
-                completionCallback.accept(result.isSuccess());
+                completionCallback.accept(true);
             }
         });
         
+        mtrThread.setDaemon(true);
         mtrThread.start();
     }
+    
+
 
     private void executeCommandWithCallback(int timeoutSeconds, java.util.function.Consumer<String> outputCallback, 
                                           java.util.function.Consumer<Boolean> completionCallback, String... command) {
