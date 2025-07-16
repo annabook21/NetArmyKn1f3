@@ -472,13 +472,127 @@ public class SystemToolsManager {
 
     public QueryResult executeTraceroute(String host) {
         String command = getTracerouteCommand();
-        return executeCommand(command, host);
+        return executeCommandWithTimeout(120, command, host); // 2 minute timeout for traceroute
     }
 
     public QueryResult executeMtr(String host) {
-        // Use -j for JSON output, -c 1 to send one packet per hop
+        // Try MTR without sudo first, then fall back to sudo if needed
         String mtrPath = settingsService.getMtrPath();
-        return executeCommand(mtrPath, "-j", "-c", "1", host);
+        
+        // First try without sudo (in case permissions are set up differently)
+        QueryResult result = executeCommandWithTimeout(10, mtrPath, "--report", "-c", "1", "--no-dns", host);
+        
+        if (!result.isSuccess() && result.getErrorOutput().contains("Failure to open")) {
+            // If it fails with socket errors, inform user that sudo is needed
+            result.setOutput("⚠️ MTR requires administrator privileges on macOS.\n" +
+                           "💡 Please run the application from terminal with: sudo mvn exec:java -Dexec.mainClass=\"edu.au.cpsc.module7.App\"\n" +
+                           "🔄 Alternatively, use Traceroute which works without sudo.\n");
+            result.setSuccess(false);
+        }
+        
+        return result;
+    }
+
+    /**
+     * Execute traceroute with streaming output callback for real-time UI updates
+     */
+    public void executeTracerouteWithCallback(String host, java.util.function.Consumer<String> outputCallback, java.util.function.Consumer<Boolean> completionCallback) {
+        String command = getTracerouteCommand();
+        executeCommandWithCallback(120, outputCallback, completionCallback, command, host);
+    }
+
+    /**
+     * Execute MTR with streaming output callback for real-time UI updates
+     */
+    public void executeMtrWithCallback(String host, java.util.function.Consumer<String> outputCallback, java.util.function.Consumer<Boolean> completionCallback) {
+        String mtrPath = settingsService.getMtrPath();
+        
+        // Try without sudo first
+        Thread mtrThread = new Thread(() -> {
+            QueryResult result = executeCommandWithTimeout(10, mtrPath, "--report", "-c", "1", "--no-dns", host);
+            
+            if (!result.isSuccess() && result.getErrorOutput().contains("Failure to open")) {
+                // If it fails, provide helpful message
+                outputCallback.accept("⚠️ MTR requires administrator privileges on macOS.\n");
+                outputCallback.accept("💡 Please run the application from terminal with: sudo mvn exec:java -Dexec.mainClass=\"edu.au.cpsc.module7.App\"\n");
+                outputCallback.accept("🔄 Alternatively, use Traceroute which works without sudo.\n");
+                completionCallback.accept(false);
+            } else {
+                // Success case
+                if (!result.getOutput().isEmpty()) {
+                    outputCallback.accept(result.getOutput());
+                }
+                completionCallback.accept(result.isSuccess());
+            }
+        });
+        
+        mtrThread.start();
+    }
+
+    private void executeCommandWithCallback(int timeoutSeconds, java.util.function.Consumer<String> outputCallback, 
+                                          java.util.function.Consumer<Boolean> completionCallback, String... command) {
+        // Run in background thread to avoid blocking UI
+        Thread commandThread = new Thread(() -> {
+            try {
+                ProcessBuilder pb = new ProcessBuilder(command);
+                Process process = pb.start();
+
+                // Read output in real-time and send to callback
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        final String outputLine = line;
+                        LOGGER.info("Command output: " + outputLine);
+                        // Send each line to the UI immediately
+                        outputCallback.accept(outputLine + "\n");
+                    }
+                }
+
+                // Read stderr with better MTR error handling
+                StringBuilder errorOutput = new StringBuilder();
+                try (BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                    String line;
+                    while ((line = errorReader.readLine()) != null) {
+                        final String errorLine = line;
+                        LOGGER.warning("Command error: " + errorLine);
+                        errorOutput.append(errorLine).append("\n");
+                        
+                        // Check for MTR socket permission errors
+                        if (errorLine.contains("mtr-packet: Failure to open") && errorLine.contains("sockets")) {
+                            outputCallback.accept("⚠️ MTR Permission Error: " + errorLine + "\n");
+                        } else if (errorLine.contains("mtr: Failure to start mtr-packet")) {
+                            outputCallback.accept("❌ MTR Error: " + errorLine + "\n");
+                            outputCallback.accept("💡 MTR requires raw socket access on macOS.\n");
+                            outputCallback.accept("🔄 Consider using Traceroute instead, which works with ChmodBPF.\n");
+                        } else {
+                            outputCallback.accept("ERROR: " + errorLine + "\n");
+                        }
+                    }
+                }
+
+                boolean finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
+                if (!finished) {
+                    process.destroyForcibly();
+                    outputCallback.accept("Command timed out after " + timeoutSeconds + " seconds.\n");
+                    completionCallback.accept(false);
+                } else {
+                    // For MTR, if we got socket errors, it's not really a success even with exit code 0
+                    boolean isSuccess = process.exitValue() == 0;
+                    if (isSuccess && errorOutput.toString().contains("mtr-packet: Failure to open")) {
+                        isSuccess = false;
+                    }
+                    completionCallback.accept(isSuccess);
+                }
+
+            } catch (IOException | InterruptedException e) {
+                LOGGER.log(Level.SEVERE, "Error executing command: " + String.join(" ", command), e);
+                outputCallback.accept("Error: " + e.getMessage() + "\n");
+                completionCallback.accept(false);
+            }
+        });
+        
+        commandThread.setDaemon(true);
+        commandThread.start();
     }
 
     public QueryResult executeHping3(List<String> args) {
@@ -619,47 +733,109 @@ public class SystemToolsManager {
     }
 
     private QueryResult executeCommand(String... command) {
+        return executeCommandWithTimeout(settingsService.getTimeoutSeconds(), command);
+    }
+
+    private QueryResult executeCommandWithTimeout(int timeoutSeconds, String... command) {
         QueryResult queryResult = new QueryResult(String.join(" ", command), "");
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             Process process = pb.start();
 
-            // Readers for stdout and stderr
-            BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-
-            // Read output
+            // Use separate threads to read stdout and stderr non-blocking
             StringBuilder output = new StringBuilder();
-            String s;
-            while ((s = stdInput.readLine()) != null) {
-                output.append(s).append("\n");
-            }
-
-            // Read errors
             StringBuilder errorOutput = new StringBuilder();
-            while ((s = stdError.readLine()) != null) {
-                errorOutput.append(s).append("\n");
+            
+            // Thread for reading stdout
+            Thread outputThread = new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        synchronized (output) {
+                            output.append(line).append("\n");
+                        }
+                        // Log progress for user feedback AND update the QueryResult in real-time
+                        LOGGER.info("Command output: " + line);
+                        
+                        // Update QueryResult immediately so UI can see progress
+                        synchronized (queryResult) {
+                            queryResult.setOutput(output.toString().trim());
+                        }
+                    }
+                } catch (IOException e) {
+                    LOGGER.warning("Error reading command output: " + e.getMessage());
+                }
+            });
+            
+            // Thread for reading stderr
+            Thread errorThread = new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        synchronized (errorOutput) {
+                            errorOutput.append(line).append("\n");
+                        }
+                        LOGGER.warning("Command error: " + line);
+                        
+                        // Update error output immediately
+                        synchronized (queryResult) {
+                            queryResult.setErrorOutput(errorOutput.toString().trim());
+                        }
+                    }
+                } catch (IOException e) {
+                    LOGGER.warning("Error reading command error output: " + e.getMessage());
+                }
+            });
+
+            outputThread.start();
+            errorThread.start();
+
+            boolean finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
+
+            // Wait for output threads to finish
+            outputThread.interrupt();
+            errorThread.interrupt();
+            try {
+                outputThread.join(1000);
+                errorThread.join(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
 
-            boolean finished = process.waitFor(settingsService.getTimeoutSeconds(), TimeUnit.SECONDS);
-
-            queryResult.setExitCode(process.exitValue());
-            queryResult.setOutput(output.toString().trim());
-            queryResult.setErrorOutput(errorOutput.toString().trim());
-
-
-            if (!finished) {
-                process.destroyForcibly();
-                queryResult.setErrorOutput("Command timed out after " + settingsService.getTimeoutSeconds() + " seconds.");
-                queryResult.setSuccess(false);
-            } else {
+            if (finished) {
+                queryResult.setExitCode(process.exitValue());
                 queryResult.setSuccess(process.exitValue() == 0);
+            } else {
+                process.destroyForcibly();
+                queryResult.setExitCode(-1);
+                queryResult.setSuccess(false);
+            }
+            
+            // Final update of output
+            synchronized (output) {
+                queryResult.setOutput(output.toString().trim());
+            }
+            synchronized (errorOutput) {
+                String errorText = errorOutput.toString().trim();
+                if (!finished && !errorText.isEmpty()) {
+                    queryResult.setErrorOutput(errorText + "\nCommand timed out after " + timeoutSeconds + " seconds.");
+                } else if (!finished) {
+                    queryResult.setErrorOutput("Command timed out after " + timeoutSeconds + " seconds.");
+                } else {
+                    queryResult.setErrorOutput(errorText);
+                }
             }
 
         } catch (IOException | InterruptedException e) {
             LOGGER.log(Level.SEVERE, "Error executing command: " + String.join(" ", command), e);
-            queryResult.setErrorOutput(e.getMessage());
-            queryResult.setSuccess(false);
+            if (e instanceof InterruptedException) {
+                queryResult.setErrorOutput("Command was cancelled by user");
+                queryResult.setSuccess(false);
+                Thread.currentThread().interrupt(); // Restore interrupt flag
+            } else {
+                queryResult.setErrorOutput(e.getMessage());
+                queryResult.setSuccess(false);
+            }
         }
         return queryResult;
     }

@@ -42,6 +42,9 @@
                     style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 16;"/>
             <Button fx:id="stopCaptureButton" text="⏹️ Stop Capture" onAction="#handleStopCapture"
                     style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 16;" disable="true"/>
+            <Separator orientation="VERTICAL"/>
+            <Button fx:id="simulationModeButton" text="🔧 Setup Real Capture" onAction="#handleSimulationMode"
+                    style="-fx-background-color: #9c27b0; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 16;"/>
             <Button fx:id="clearPacketsButton" text="🗑️ Clear" onAction="#handleClearPackets"
                     style="-fx-background-color: #ff9800; -fx-text-fill: white; -fx-padding: 8 16;"/>
             <Label fx:id="captureStatusLabel" text="Ready to capture" style="-fx-text-fill: #2e7d32; -fx-font-weight: bold;"/>
@@ -123,7 +126,7 @@
                     <!-- Raw Data -->
                     <VBox spacing="5">
                         <Label text="Raw Data (Hex):" style="-fx-font-weight: bold;"/>
-                        <TextArea fx:id="rawDataArea" prefRowCount="8" editable="false"
+                        <TextArea fx:id="rawDataArea" prefRowCount="12" editable="false"
                                  style="-fx-font-family: 'Courier New', monospace; -fx-font-size: 11px; -fx-background-color: #2d3748; -fx-text-fill: #e2e8f0;"/>
                     </VBox>
                 </VBox>
@@ -199,7 +202,7 @@
                     <!-- Export Summary -->
                     <VBox spacing="10">
                         <Label text="Export Summary:" style="-fx-font-weight: bold;"/>
-                        <TextArea fx:id="exportSummaryArea" prefRowCount="10" editable="false"
+                        <TextArea fx:id="exportSummaryArea" prefRowCount="15" editable="false"
                                  style="-fx-font-family: 'Courier New', monospace; -fx-background-color: #f5f5f5;"/>
                     </VBox>
                 </VBox>

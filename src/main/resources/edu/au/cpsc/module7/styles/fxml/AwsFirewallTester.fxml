@@ -200,7 +200,7 @@
                                     <VBox spacing="5.0">
                                        <children>
                                           <Label text="Result Details:" />
-                                          <TextArea fx:id="resultDetailsTextArea" editable="false" VBox.vgrow="ALWAYS" />
+                                          <TextArea fx:id="resultDetailsTextArea" editable="false" prefRowCount="15" />
                                        </children>
                                     </VBox>
                                  </items>

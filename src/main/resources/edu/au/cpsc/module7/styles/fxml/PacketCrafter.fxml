@@ -45,7 +45,7 @@
     <Separator/>
 
     <Label text="Output:"/>
-    <TextArea fx:id="outputArea" editable="false" wrapText="true" VBox.vgrow="ALWAYS" prefRowCount="15" style="-fx-font-family: monospace;"/>
+    <TextArea fx:id="outputArea" editable="false" wrapText="true" prefRowCount="20" style="-fx-font-family: monospace;"/>
 
       </VBox>
    </content>

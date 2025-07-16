@@ -140,23 +140,55 @@ public class NetworkProbeController implements Initializable {
         currentProbeTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                // Path Analysis
+                // Path Analysis with real-time streaming output
                 String analysisType = pathAnalysisChoiceBox.getValue();
                 if (!"None".equals(analysisType)) {
                     updateMessage("Running " + analysisType + "...");
                     Platform.runLater(() -> appendResults("--- Running " + analysisType + " ---\n"));
 
-                    QueryResult result;
+                    // Use a CountDownLatch to wait for completion
+                    java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+                    
                     if ("Traceroute".equals(analysisType)) {
-                        result = systemToolsManager.executeTraceroute(target);
+                        systemToolsManager.executeTracerouteWithCallback(target,
+                            // Output callback - called for each line of output
+                            (outputLine) -> Platform.runLater(() -> appendResults(outputLine)),
+                            // Completion callback - called when command finishes
+                            (success) -> {
+                                Platform.runLater(() -> {
+                                    if (success) {
+                                        appendResults("✅ Traceroute completed successfully\n\n");
+                                    } else {
+                                        appendResults("❌ Traceroute completed with errors\n\n");
+                                    }
+                                });
+                                latch.countDown();
+                            }
+                        );
                     } else { // MTR
-                        result = systemToolsManager.executeMtr(target);
+                        systemToolsManager.executeMtrWithCallback(target,
+                            // Output callback - called for each line of output
+                            (outputLine) -> Platform.runLater(() -> appendResults(outputLine)),
+                            // Completion callback - called when command finishes
+                            (success) -> {
+                                Platform.runLater(() -> {
+                                    if (success) {
+                                        appendResults("✅ MTR completed successfully\n\n");
+                                    } else {
+                                        appendResults("❌ MTR completed with errors\n\n");
+                                    }
+                                });
+                                latch.countDown();
+                            }
+                        );
                     }
-
-                    if (result.isSuccess()) {
-                        Platform.runLater(() -> appendResults(result.getOutput() + "\n"));
-                    } else {
-                        Platform.runLater(() -> appendResults("Error: " + result.getErrorOutput() + "\n"));
+                    
+                    // Wait for the command to complete before continuing
+                    try {
+                        latch.await();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return null;
                     }
                 }
 

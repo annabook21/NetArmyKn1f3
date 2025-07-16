@@ -69,10 +69,19 @@ public class SettingsService {
         settings.putIfAbsent("theme", "dark");
         settings.putIfAbsent("font.family", "Courier New");
         settings.putIfAbsent("font.size", "12");
-        settings.putIfAbsent("mtr.path", "mtr");
+        
+        // Use full paths for tools that are commonly in non-PATH directories on macOS
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("mac") || os.contains("darwin")) {
+            settings.putIfAbsent("mtr.path", "/usr/local/sbin/mtr");
+            settings.putIfAbsent("traceroute.path", "/usr/sbin/traceroute");
+        } else {
+            settings.putIfAbsent("mtr.path", "mtr");
+            settings.putIfAbsent("traceroute.path", "traceroute");
+        }
+        
         settings.putIfAbsent("hping3.path", "hping3");
         settings.putIfAbsent("nmap.path", "nmap");
-        settings.putIfAbsent("traceroute.path", "traceroute");
     }
 
     public void saveSettings() throws IOException {

@@ -7,8 +7,11 @@ import javafx.collections.ObservableList;
 
 import java.io.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,11 +35,93 @@ public class TcpdumpPacketCaptureService {
     private static final String TCPDUMP_PATH = "/usr/sbin/tcpdump";
     
     /**
+     * Check if we can run tcpdump without sudo
+     */
+    private boolean canRunTcpdumpWithoutSudo() {
+        try {
+            // Check if user is in access_bpf group (ChmodBPF installed)
+            ProcessBuilder groupCheck = new ProcessBuilder("groups", System.getProperty("user.name"));
+            Process groupProcess = groupCheck.start();
+            boolean finished = groupProcess.waitFor(2, TimeUnit.SECONDS);
+            
+            if (finished && groupProcess.exitValue() == 0) {
+                // Read groups output
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(groupProcess.getInputStream()))) {
+                    String groupsLine = reader.readLine();
+                    if (groupsLine != null && groupsLine.contains("access_bpf")) {
+                        logger.info("User is in access_bpf group - packet capture without sudo enabled");
+                        return true;
+                    }
+                }
+            }
+            
+            // Fallback: Test actual packet capture access with a quick interface list
+            ProcessBuilder pb = new ProcessBuilder(TCPDUMP_PATH, "-D");
+            Process process = pb.start();
+            finished = process.waitFor(2, TimeUnit.SECONDS);
+            if (finished) {
+                boolean canCapture = process.exitValue() == 0;
+                if (canCapture) {
+                    logger.info("tcpdump can list interfaces without sudo - packet capture enabled");
+                } else {
+                    logger.info("tcpdump requires sudo for packet capture");
+                }
+                return canCapture;
+            }
+            process.destroyForcibly();
+            return false;
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Error checking packet capture permissions", e);
+            return false;
+        }
+    }
+    
+    /**
+     * Build the tcpdump command with or without sudo
+     */
+    private List<String> buildTcpdumpCommand(String interfaceName, String outputFile, String filter) {
+        List<String> command = new ArrayList<>();
+        
+        // Check if we need sudo (on macOS, tcpdump usually requires root)
+        boolean needsSudo = !canRunTcpdumpWithoutSudo();
+        
+        if (needsSudo) {
+            command.add("sudo");
+            command.add("-n"); // Non-interactive sudo
+        }
+        
+        command.add(TCPDUMP_PATH);
+        command.add("-i");
+        command.add(interfaceName);
+        command.add("-w");
+        command.add(outputFile);
+        command.add("-U");          // Unbuffered output
+        command.add("-s");
+        command.add("65535");       // Snapshot length
+        
+        // Add filter if specified
+        if (filter != null && !filter.trim().isEmpty()) {
+            command.add(filter);
+        }
+        
+        return command;
+    }
+    
+    /**
      * Start packet capture on specified interface
      */
     public void startCapture(String interfaceName, String filter, String outputFile) {
         if (capturing) {
             stopCapture();
+        }
+        
+        // Check if tcpdump exists and is executable
+        File tcpdumpFile = new File(TCPDUMP_PATH);
+        if (!tcpdumpFile.exists() || !tcpdumpFile.canExecute()) {
+            throw new RuntimeException("tcpdump not found or not executable at " + TCPDUMP_PATH + 
+                "\nTry installing with: brew install tcpdump (if using Homebrew)" +
+                "\nOr check if tcpdump is in a different location");
         }
         
         this.currentInterface = interfaceName;
@@ -48,20 +133,10 @@ public class TcpdumpPacketCaptureService {
                 logger.info("Starting tcpdump capture on interface: " + interfaceName);
                 
                 // Build tcpdump command
-                ProcessBuilder pb = new ProcessBuilder();
-                pb.command(TCPDUMP_PATH,
-                    "-i", interfaceName,           // Interface
-                    "-w", outputFile,              // Write to file
-                    "-U",                          // Unbuffered output
-                    "-s", "65535");                // Snapshot length
-                
-                // Add filter if specified
-                if (filter != null && !filter.trim().isEmpty()) {
-                    pb.command().add(filter);
-                }
+                List<String> command = buildTcpdumpCommand(interfaceName, outputFile, filter);
                 
                 // Start the process
-                tcpdumpProcess = pb.start();
+                tcpdumpProcess = new ProcessBuilder(command).start();
                 capturing = true;
                 
                 logger.info("Tcpdump capture started successfully");
@@ -75,12 +150,27 @@ public class TcpdumpPacketCaptureService {
                     // Read error output
                     String errorOutput = readErrorOutput(tcpdumpProcess);
                     logger.warning("Tcpdump exit code: " + exitCode + ", Error: " + errorOutput);
+                    
+                    // Show user-friendly error guidance
+                    Platform.runLater(() -> {
+                        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+                        alert.setTitle("Packet Capture Failed");
+                        alert.setHeaderText("Tcpdump returned exit code: " + exitCode);
+                        alert.setContentText(getTcpdumpErrorGuidance(errorOutput));
+                        alert.getDialogPane().setPrefWidth(600);
+                        alert.show();
+                    });
                 }
                 
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Error starting tcpdump capture", e);
                 Platform.runLater(() -> {
-                    // Notify UI of error
+                    javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+                    alert.setTitle("Packet Capture Error");
+                    alert.setHeaderText("Failed to start packet capture");
+                    alert.setContentText(getTcpdumpErrorGuidance(e.getMessage() != null ? e.getMessage() : "Unknown error"));
+                    alert.getDialogPane().setPrefWidth(600);
+                    alert.show();
                 });
             } finally {
                 capturing = false;
@@ -251,6 +341,236 @@ public class TcpdumpPacketCaptureService {
     }
     
     /**
+     * Get user-friendly error message for common tcpdump issues
+     */
+    private String getTcpdumpErrorGuidance(String errorOutput) {
+        StringBuilder guidance = new StringBuilder();
+        guidance.append("Packet capture failed.\n\n");
+        
+        if (errorOutput.contains("Operation not permitted") || errorOutput.contains("Permission denied")) {
+            // Check if user has ChmodBPF installed
+            boolean hasChmodBPF = false;
+            try {
+                ProcessBuilder groupCheck = new ProcessBuilder("groups", System.getProperty("user.name"));
+                Process groupProcess = groupCheck.start();
+                groupProcess.waitFor(2, TimeUnit.SECONDS);
+                
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(groupProcess.getInputStream()))) {
+                    String groupsLine = reader.readLine();
+                    hasChmodBPF = groupsLine != null && groupsLine.contains("access_bpf");
+                }
+            } catch (Exception e) {
+                // Ignore
+            }
+            
+            if (hasChmodBPF) {
+                guidance.append("🎉 GOOD NEWS: ChmodBPF is installed and you're in the access_bpf group!\n\n");
+                guidance.append("RESTART REQUIRED:\n");
+                guidance.append("• Please restart this application to apply the new permissions\n");
+                guidance.append("• After restart, real packet capture should work without sudo\n\n");
+                guidance.append("ALTERNATIVE - SIMULATION MODE (works immediately):\n");
+                guidance.append("• Click 'Enable Simulation Mode' for immediate packet analysis\n");
+                guidance.append("• Generates realistic HTTP, DNS, TCP, UDP traffic for learning\n\n");
+            } else {
+                guidance.append("PERMISSION ISSUE - EASY SOLUTIONS:\n\n");
+                guidance.append("🎯 SIMULATION MODE (RECOMMENDED):\n");
+                guidance.append("• Click 'Enable Simulation Mode' below\n");
+                guidance.append("• Generates realistic network traffic for analysis\n");
+                guidance.append("• No permissions required, works immediately\n");
+                guidance.append("• Perfect for learning packet analysis\n\n");
+                
+                guidance.append("🔧 REAL CAPTURE SETUP:\n");
+                guidance.append("• Install Wireshark: brew install --cask wireshark\n");
+                guidance.append("• Restart this application after installation\n");
+                guidance.append("• Wireshark handles all permissions automatically\n\n");
+            }
+        }
+        
+        if (errorOutput.contains("No such device") || errorOutput.contains("SIOCGIFHWADDR")) {
+            guidance.append("INTERFACE ISSUE:\n");
+            guidance.append("• Check that the selected interface exists and is available\n");
+            guidance.append("• Try refreshing the interface list\n");
+            guidance.append("• Some virtual interfaces may not support packet capture\n\n");
+        }
+        
+        if (errorOutput.contains("tcpdump: command not found")) {
+            guidance.append("TCPDUMP NOT FOUND:\n");
+            guidance.append("• tcpdump is not installed or not in PATH\n");
+            guidance.append("• Install with: brew install tcpdump\n");
+            guidance.append("• Or install Wireshark which includes tcpdump: brew install --cask wireshark\n\n");
+        }
+        
+        guidance.append("Error details: ").append(errorOutput);
+        
+        return guidance.toString();
+    }
+    
+    /**
+     * Start simulation mode - generates sample network traffic for analysis
+     */
+    public void startSimulationMode() {
+        if (capturing) {
+            stopCapture();
+        }
+        
+        this.currentInterface = "Simulation Mode";
+        this.captureFilter = "";
+        capturing = true;
+        
+        executorService.submit(() -> {
+            logger.info("Starting packet capture simulation mode");
+            
+            try {
+                Platform.runLater(() -> {
+                    javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+                    alert.setTitle("Simulation Mode Active");
+                    alert.setHeaderText("Packet Capture Simulation Started");
+                    alert.setContentText("Generating sample network traffic for analysis.\n\n" +
+                        "• No root privileges required\n" +
+                        "• Simulates HTTP, DNS, TCP, UDP traffic\n" +
+                        "• Perfect for learning packet analysis\n" +
+                        "• All packet analyzer features work normally\n\n" +
+                        "Click 'Stop Capture' to end simulation.");
+                    alert.show();
+                });
+                
+                generateSimulatedTraffic();
+                
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Error in simulation mode", e);
+            } finally {
+                capturing = false;
+            }
+        });
+    }
+    
+    /**
+     * Generate realistic network traffic for analysis
+     */
+    private void generateSimulatedTraffic() {
+        int packetId = 1;
+        String[] sourceIPs = {"192.168.1.100", "192.168.1.101", "10.0.0.50", "172.16.1.20"};
+        String[] destIPs = {"8.8.8.8", "1.1.1.1", "192.168.1.1", "172.217.14.110"};
+        
+        while (capturing) {
+            try {
+                // Generate different types of traffic
+                if (packetId % 5 == 0) {
+                    generateDNSPacket(packetId++, sourceIPs, destIPs);
+                } else if (packetId % 3 == 0) {
+                    generateHTTPPacket(packetId++, sourceIPs, destIPs);
+                } else if (packetId % 7 == 0) {
+                    generateARPPacket(packetId++, sourceIPs);
+                } else {
+                    generateTCPUDPPacket(packetId++, sourceIPs, destIPs);
+                }
+                
+                // Realistic timing between packets
+                Thread.sleep(500 + (int)(Math.random() * 2000)); // 0.5-2.5 seconds
+                
+            } catch (InterruptedException e) {
+                break;
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Error generating simulated packet", e);
+            }
+        }
+    }
+    
+    private void generateDNSPacket(int packetId, String[] sourceIPs, String[] destIPs) {
+        String source = sourceIPs[(int)(Math.random() * sourceIPs.length)];
+        String dest = "8.8.8.8"; // DNS server
+        String[] domains = {"google.com", "github.com", "stackoverflow.com", "youtube.com", "amazon.com"};
+        String domain = domains[(int)(Math.random() * domains.length)];
+        
+        CapturedPacket packet = new CapturedPacket(
+            packetId,
+            LocalDateTime.now(),
+            source,
+            dest,
+            (int)(Math.random() * 60000 + 1024), // Random source port
+            53, // DNS port
+            "DNS",
+            64,
+            new byte[64],
+            "DNS Query for " + domain
+        );
+        
+        Platform.runLater(() -> capturedPackets.add(packet));
+    }
+    
+    private void generateHTTPPacket(int packetId, String[] sourceIPs, String[] destIPs) {
+        String source = sourceIPs[(int)(Math.random() * sourceIPs.length)];
+        String dest = destIPs[(int)(Math.random() * destIPs.length)];
+        String[] methods = {"GET", "POST", "PUT", "DELETE"};
+        String method = methods[(int)(Math.random() * methods.length)];
+        String[] paths = {"/", "/api/users", "/login", "/dashboard", "/images/logo.png"};
+        String path = paths[(int)(Math.random() * paths.length)];
+        
+        CapturedPacket packet = new CapturedPacket(
+            packetId,
+            LocalDateTime.now(),
+            source,
+            dest,
+            (int)(Math.random() * 60000 + 1024),
+            80, // HTTP port
+            "HTTP",
+            (int)(Math.random() * 1400 + 100),
+            new byte[512],
+            "HTTP " + method + " " + path
+        );
+        
+        packet.setHttpMethod(method);
+        packet.setHttpUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36");
+        
+        Platform.runLater(() -> capturedPackets.add(packet));
+    }
+    
+    private void generateARPPacket(int packetId, String[] sourceIPs) {
+        String source = sourceIPs[(int)(Math.random() * sourceIPs.length)];
+        String dest = "192.168.1.1"; // Gateway
+        
+        CapturedPacket packet = new CapturedPacket(
+            packetId,
+            LocalDateTime.now(),
+            source,
+            dest,
+            0, 0, // No ports for ARP
+            "ARP",
+            42,
+            new byte[42],
+            "ARP Request: Who has " + dest + "? Tell " + source
+        );
+        
+        packet.setArpOperation("Request");
+        
+        Platform.runLater(() -> capturedPackets.add(packet));
+    }
+    
+    private void generateTCPUDPPacket(int packetId, String[] sourceIPs, String[] destIPs) {
+        String source = sourceIPs[(int)(Math.random() * sourceIPs.length)];
+        String dest = destIPs[(int)(Math.random() * destIPs.length)];
+        String protocol = Math.random() > 0.5 ? "TCP" : "UDP";
+        int[] commonPorts = {22, 25, 110, 143, 443, 993, 995, 3306, 5432};
+        int destPort = commonPorts[(int)(Math.random() * commonPorts.length)];
+        
+        CapturedPacket packet = new CapturedPacket(
+            packetId,
+            LocalDateTime.now(),
+            source,
+            dest,
+            (int)(Math.random() * 60000 + 1024),
+            destPort,
+            protocol,
+            (int)(Math.random() * 1000 + 50),
+            new byte[256],
+            protocol + " traffic to port " + destPort
+        );
+        
+        Platform.runLater(() -> capturedPackets.add(packet));
+    }
+    
+    /**
      * Get captured packets list
      */
     public ObservableList<CapturedPacket> getCapturedPackets() {
@@ -303,8 +623,18 @@ public class TcpdumpPacketCaptureService {
     public String[] getAvailableInterfaces() {
         try {
             ProcessBuilder pb = new ProcessBuilder();
-            pb.command(TCPDUMP_PATH, "-D");  // List interfaces
+            List<String> command = new ArrayList<>();
             
+            // Check if we need sudo for listing interfaces
+            boolean needsSudo = !canRunTcpdumpWithoutSudo();
+            if (needsSudo) {
+                command.add("sudo");
+                command.add("-n");
+            }
+            command.add(TCPDUMP_PATH);
+            command.add("-D");  // List interfaces
+            
+            pb.command(command);
             Process process = pb.start();
             
             try (BufferedReader reader = new BufferedReader(
@@ -316,17 +646,61 @@ public class TcpdumpPacketCaptureService {
                 while ((line = reader.readLine()) != null) {
                     // Parse interface list format: "1.en0 [Up, Running]"
                     if (line.contains(".")) {
-                        String interfaceName = line.split("\\.")[1].split(" ")[0];
-                        interfaces.add(interfaceName);
+                        String[] parts = line.split("\\.");
+                        if (parts.length > 1) {
+                            String interfaceName = parts[1].split(" ")[0];
+                            // Just use the clean interface name for tcpdump compatibility
+                            interfaces.add(interfaceName);
+                        }
                     }
+                }
+                
+                // If no interfaces found via tcpdump, try Java's NetworkInterface
+                if (interfaces.isEmpty()) {
+                    logger.warning("No interfaces found via tcpdump, falling back to Java NetworkInterface");
+                    return getJavaNetworkInterfaces();
                 }
                 
                 return interfaces.toArray(new String[0]);
             }
             
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error getting available interfaces", e);
-            return new String[]{"en0", "en1", "lo0"}; // Default interfaces
+            logger.log(Level.WARNING, "Error getting available interfaces via tcpdump", e);
+            // Fallback to Java's NetworkInterface API
+            return getJavaNetworkInterfaces();
+        }
+    }
+    
+    /**
+     * Fallback method to get interfaces using Java's NetworkInterface API
+     */
+    private String[] getJavaNetworkInterfaces() {
+        try {
+            java.util.List<String> interfaces = new java.util.ArrayList<>();
+            java.util.Enumeration<java.net.NetworkInterface> networkInterfaces = 
+                java.net.NetworkInterface.getNetworkInterfaces();
+            
+            while (networkInterfaces.hasMoreElements()) {
+                java.net.NetworkInterface networkInterface = networkInterfaces.nextElement();
+                if (networkInterface.isUp() && !networkInterface.isLoopback()) {
+                    // Only add the interface name, not the display name, for tcpdump compatibility
+                    interfaces.add(networkInterface.getName());
+                }
+            }
+            
+            // Add common macOS interfaces as fallback
+            if (interfaces.isEmpty()) {
+                interfaces.add("en0");
+                interfaces.add("en1");
+                interfaces.add("lo0");
+            }
+            
+            return interfaces.toArray(new String[0]);
+            
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error getting network interfaces", e);
+            // Final fallback
+            return new String[]{"en0", "en1", "lo0"};
         }
     }
     

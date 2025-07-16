@@ -45,6 +45,7 @@ public class PacketAnalyzerController {
     @FXML private Button startCaptureButton;
     @FXML private Button stopCaptureButton;
     @FXML private Button clearPacketsButton;
+    @FXML private Button simulationModeButton;
     @FXML private Label captureStatusLabel;
     
     // Protocol Filters
@@ -651,6 +652,249 @@ public class PacketAnalyzerController {
                 showAlert("Export Failed", "Failed to export packets: " + e.getMessage());
             }
         }
+    }
+    
+    @FXML
+    private void handleSimulationMode() {
+        // Show dialog with proper macOS packet capture setup
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Enable Real Packet Capture on macOS");
+        alert.setHeaderText("Set up packet capture permissions (macOS method)");
+        alert.setContentText("""
+            On macOS, packet capture requires special setup due to System Integrity Protection.
+            
+            EASY METHOD (Recommended):
+            1. Install Wireshark which handles all permissions automatically:
+               brew install --cask wireshark
+            
+            2. After installation, restart this application
+            
+            MANUAL METHOD (Advanced):
+            1. Install ChmodBPF: 
+               curl https://raw.githubusercontent.com/wireshark/wireshark/master/tools/macos-setup.sh | bash
+            
+            2. Restart this application
+            
+            The easy method installs Wireshark and automatically configures packet capture permissions.
+            Would you like to proceed?
+            """);
+        
+        ButtonType wiresharkButton = new ButtonType("Install Wireshark (Easy)");
+        ButtonType manualButton = new ButtonType("Manual Setup");
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(wiresharkButton, manualButton, cancelButton);
+        alert.getDialogPane().setPrefWidth(700);
+        
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent()) {
+            if (result.get() == wiresharkButton) {
+                installWiresharkMethod();
+            } else if (result.get() == manualButton) {
+                manualSetupMethod();
+            }
+        }
+    }
+    
+    private void installWiresharkMethod() {
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Install Wireshark");
+        confirmAlert.setHeaderText("Automatic packet capture setup");
+        confirmAlert.setContentText("""
+            This will install Wireshark using Homebrew, which automatically sets up packet capture permissions.
+            
+            Command to run:
+            brew install --cask wireshark
+            
+            This is the recommended method on macOS and works without disabling security features.
+            
+            Continue with installation?
+            """);
+        
+        Optional<ButtonType> result = confirmAlert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            executeWiresharkInstall();
+        }
+    }
+    
+    private void executeWiresharkInstall() {
+        Alert progressAlert = new Alert(Alert.AlertType.INFORMATION);
+        progressAlert.setTitle("Installing Wireshark...");
+        progressAlert.setHeaderText("Please wait");
+        progressAlert.setContentText("Installing Wireshark and setting up packet capture permissions...");
+        progressAlert.getDialogPane().lookupButton(ButtonType.OK).setVisible(false);
+        
+        // Add cancel button to stop hanging installations
+        ButtonType cancelButton = new ButtonType("Cancel Installation", ButtonBar.ButtonData.CANCEL_CLOSE);
+        progressAlert.getButtonTypes().add(cancelButton);
+        progressAlert.show();
+        
+        Thread installThread = new Thread(() -> {
+            final Process[] processHolder = new Process[1]; // Use array to make it effectively final
+            try {
+                // First check if Homebrew is installed
+                ProcessBuilder brewCheck = new ProcessBuilder("which", "brew");
+                Process brewProcess = brewCheck.start();
+                boolean brewInstalled = brewProcess.waitFor() == 0;
+                
+                if (!brewInstalled) {
+                    Platform.runLater(() -> {
+                        progressAlert.close();
+                        showInstallationError("Homebrew is not installed. Please install Homebrew first:\n\n/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"\n\nThen try the setup again.");
+                    });
+                    return;
+                }
+                
+                // Update progress
+                Platform.runLater(() -> progressAlert.setContentText("Homebrew found. Installing Wireshark..."));
+                
+                // Execute brew install with timeout
+                ProcessBuilder pb = new ProcessBuilder("brew", "install", "--cask", "wireshark");
+                pb.redirectErrorStream(true); // Combine stdout and stderr
+                processHolder[0] = pb.start();
+                
+                // Wait for completion with timeout (5 minutes)
+                boolean finished = processHolder[0].waitFor(5, java.util.concurrent.TimeUnit.MINUTES);
+                
+                if (!finished) {
+                    // Installation timed out
+                    processHolder[0].destroyForcibly();
+                    Platform.runLater(() -> {
+                        progressAlert.close();
+                        showInstallationError("Installation timed out after 5 minutes. This could mean:\n\n• Slow internet connection\n• Homebrew needs updating\n• User interaction required\n\nTry running this command manually in Terminal:\nbrew install --cask wireshark");
+                    });
+                    return;
+                }
+                
+                int exitCode = processHolder[0].exitValue();
+                
+                Platform.runLater(() -> {
+                    progressAlert.close();
+                    
+                    if (exitCode == 0) {
+                        Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                        successAlert.setTitle("Installation Complete!");
+                        successAlert.setHeaderText("Wireshark installed successfully");
+                        successAlert.setContentText("""
+                            ✅ Wireshark installed and packet capture permissions configured!
+                            
+                            • Restart this application for changes to take effect
+                            • Packet capture will work without sudo
+                            • You can use both this app and Wireshark for packet analysis
+                            
+                            Please restart the NetArmyKn1f3 application now.
+                            """);
+                        successAlert.showAndWait();
+                    } else {
+                        // Read error output
+                        StringBuilder errorOutput = new StringBuilder();
+                        try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                                new java.io.InputStreamReader(processHolder[0].getInputStream()))) {
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                errorOutput.append(line).append("\n");
+                            }
+                        } catch (Exception e) {
+                            errorOutput.append("Could not read error output: ").append(e.getMessage());
+                        }
+                        
+                        String errorMsg = "Homebrew installation failed (exit code: " + exitCode + ")\n\n" + errorOutput.toString();
+                        if (errorOutput.toString().contains("already installed")) {
+                            Alert alreadyInstalledAlert = new Alert(Alert.AlertType.INFORMATION);
+                            alreadyInstalledAlert.setTitle("Already Installed");
+                            alreadyInstalledAlert.setHeaderText("Wireshark is already installed");
+                            alreadyInstalledAlert.setContentText("✅ Wireshark is already installed!\n\nRestart this application to use packet capture.");
+                            alreadyInstalledAlert.showAndWait();
+                        } else {
+                            showInstallationError(errorMsg);
+                        }
+                    }
+                });
+                
+            } catch (InterruptedException e) {
+                // Thread was interrupted (user cancelled)
+                if (processHolder[0] != null) {
+                    processHolder[0].destroyForcibly();
+                }
+                Platform.runLater(() -> {
+                    progressAlert.close();
+                    showAlert("Installation Cancelled", "Wireshark installation was cancelled.");
+                });
+            } catch (Exception e) {
+                if (processHolder[0] != null) {
+                    processHolder[0].destroyForcibly();
+                }
+                Platform.runLater(() -> {
+                    progressAlert.close();
+                    showInstallationError("Installation error: " + e.getMessage());
+                });
+            }
+        });
+        
+        // Handle cancel button
+        progressAlert.setOnCloseRequest(event -> {
+            installThread.interrupt();
+        });
+        
+        installThread.setDaemon(true);
+        installThread.start();
+    }
+    
+    private void manualSetupMethod() {
+        Alert manualAlert = new Alert(Alert.AlertType.INFORMATION);
+        manualAlert.setTitle("Manual Setup Instructions");
+        manualAlert.setHeaderText("Advanced packet capture setup");
+        manualAlert.setContentText("""
+            For manual setup, run these commands in Terminal:
+            
+            1. Install ChmodBPF:
+            curl https://raw.githubusercontent.com/wireshark/wireshark/master/tools/macos-setup.sh | bash
+            
+            2. Add your user to the access_bpf group:
+            sudo dseditgroup -o edit -a $(whoami) -t user access_bpf
+            
+            3. Restart your computer for changes to take effect
+            
+            4. Restart this application
+            
+            This method gives you packet capture without installing Wireshark.
+            """);
+        manualAlert.getDialogPane().setPrefWidth(650);
+        manualAlert.showAndWait();
+    }
+    
+    private void showInstallationError(String errorMessage) {
+        Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+        errorAlert.setTitle("Installation Failed");
+        errorAlert.setHeaderText("Could not complete automatic setup");
+        errorAlert.setContentText(errorMessage + """
+            
+            
+            Alternative options:
+            • Try the manual setup method
+            • Install Wireshark manually from wireshark.org
+            • Run this application with: sudo mvn exec:java -Dexec.mainClass="edu.au.cpsc.module7.App"
+            """);
+        errorAlert.getDialogPane().setPrefWidth(600);
+        errorAlert.showAndWait();
+    }
+    
+    private void performOneTimeSudoSetup() {
+        // Legacy method - show that it won't work on modern macOS
+        Alert infoAlert = new Alert(Alert.AlertType.WARNING);
+        infoAlert.setTitle("macOS Security Restriction");
+        infoAlert.setHeaderText("chmod +s method blocked by System Integrity Protection");
+        infoAlert.setContentText("""
+            The traditional chmod +s method doesn't work on modern macOS due to System Integrity Protection (SIP).
+            
+            Please use the "Setup Real Capture" button which provides macOS-compatible methods:
+            
+            • Wireshark installation (automatic setup)
+            • ChmodBPF method (manual setup)
+            
+            Both methods work with macOS security features enabled.
+            """);
+        infoAlert.getDialogPane().setPrefWidth(650);
+        infoAlert.showAndWait();
     }
     
     private void refreshNetworkInterfaces() {

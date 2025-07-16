@@ -202,7 +202,7 @@
                         <Button fx:id="saveRawResultsButton" text="Save to File" onAction="#handleSaveRawResults"/>
                     </HBox>
                     
-                    <TextArea fx:id="rawResultsArea" editable="false" VBox.vgrow="ALWAYS" 
+                    <TextArea fx:id="rawResultsArea" editable="false" prefRowCount="20"
                              style="-fx-font-family: 'Courier New', monospace; -fx-font-size: 12px;"/>
                 </VBox>
             </Tab>
@@ -219,7 +219,7 @@
                         <ComboBox fx:id="logLevelCombo" value="INFO"/>
                     </HBox>
                     
-                    <TextArea fx:id="testLogArea" editable="false" VBox.vgrow="ALWAYS"
+                    <TextArea fx:id="testLogArea" editable="false" prefRowCount="20"
                              style="-fx-font-family: 'Courier New', monospace; -fx-font-size: 12px;"/>
                 </VBox>
             </Tab>

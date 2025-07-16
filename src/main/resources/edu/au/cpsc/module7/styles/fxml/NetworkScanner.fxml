@@ -153,7 +153,7 @@
                     </HBox>
 
                     <!-- Log Text Area -->
-                    <TextArea fx:id="logTextArea" editable="false" VBox.vgrow="ALWAYS"
+                    <TextArea fx:id="logTextArea" editable="false" prefRowCount="20"
                              style="-fx-font-family: 'Courier New', monospace; -fx-font-size: 12px;"/>
                 </VBox>
             </Tab>

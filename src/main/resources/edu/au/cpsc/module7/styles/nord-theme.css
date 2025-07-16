@@ -163,6 +163,35 @@
     -fx-border-width: 2;
 }
 
+/* Text Areas - Remove scroll bars and allow expansion */
+.text-area {
+    -fx-background-color: #3B4252; /* nord1 */
+    -fx-text-fill: #D8DEE9; /* nord4 */
+    -fx-border-color: #4C566A; /* nord3 */
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.text-area:focused {
+    -fx-border-color: #88C0D0; /* nord8 */
+    -fx-border-width: 2;
+}
+
+.text-area .scroll-pane {
+    -fx-background-color: transparent;
+    -fx-hbar-policy: never;
+    -fx-vbar-policy: never;
+}
+
+.text-area .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.text-area .content {
+    -fx-background-color: #3B4252; /* nord1 */
+}
+
 /* --- Tables --- */
 .table-view {
     -fx-background-color: #3B4252; /* nord1 */

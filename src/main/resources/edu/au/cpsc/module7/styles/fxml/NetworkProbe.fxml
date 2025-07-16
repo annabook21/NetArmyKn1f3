@@ -113,7 +113,7 @@
                     style="-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-background-radius: 15;"/>
         </HBox>
         
-        <TextArea fx:id="resultsArea" VBox.vgrow="ALWAYS" wrapText="true" editable="false"
+        <TextArea fx:id="resultsArea" wrapText="true" editable="false" prefRowCount="25"
                   style="-fx-font-family: 'Courier New', monospace; -fx-font-size: 12px; -fx-background-color: #2d3748; -fx-text-fill: #e2e8f0; -fx-border-color: #4a5568; -fx-border-width: 1; -fx-border-radius: 4;"/>
     </VBox>
 
